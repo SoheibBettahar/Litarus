@@ -7,4 +7,5 @@ import com.example.guttenburg.di.DaggerApplicationComponent
 
 
 class GuttenburgApplication : Application(){
+    val appComponent: ApplicationComponent = DaggerApplicationComponent.create()
 }

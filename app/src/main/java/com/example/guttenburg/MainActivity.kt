@@ -15,6 +15,7 @@ import com.example.guttenburg.ui.theme.GuttenburgTheme
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val appComponent = (applicationContext as GuttenburgApplication).appComponent.inject(this)
 
         super.onCreate(savedInstanceState)
         setContent {
