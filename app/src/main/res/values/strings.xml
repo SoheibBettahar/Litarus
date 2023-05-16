@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">guttenburg</string>
+    <string name="flavor">Main</string>
+    <string name="book_cover">Book Cover</string>
 </resources>

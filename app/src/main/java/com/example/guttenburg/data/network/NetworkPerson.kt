@@ -1,3 +1,9 @@
 package com.example.guttenburg.data.network
 
-data class NetworkPerson(val birth_year: Long?, val death_year: Long?, val name: String)
+import com.squareup.moshi.Json
+
+data class NetworkPerson(
+    @Json(name = "name") var name: String? = null,
+    @Json(name = "birth_year") var birthYear: Int? = null,
+    @Json(name = "death_year") var deathYear: Int? = null
+)

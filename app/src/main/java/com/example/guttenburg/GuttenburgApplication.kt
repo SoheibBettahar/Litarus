@@ -1,11 +1,9 @@
 package com.example.guttenburg
 
 import android.app.Application
-import com.example.guttenburg.di.ApplicationComponent
-import com.example.guttenburg.di.DaggerApplicationComponent
+import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Singleton
 
-
-
-class GuttenburgApplication : Application(){
-    val appComponent: ApplicationComponent = DaggerApplicationComponent.create()
-}
+@Singleton
+@HiltAndroidApp
+class GuttenburgApplication : Application()

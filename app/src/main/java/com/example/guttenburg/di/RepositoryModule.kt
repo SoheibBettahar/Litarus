@@ -1,15 +1,34 @@
 package com.example.guttenburg.di
 
-import com.example.guttenburg.data.repository.BookRepository
-import com.example.guttenburg.data.repository.BookRepositoryImpl
-import dagger.Binds
+import com.example.guttenburg.data.network.BooksService
+import com.example.guttenburg.data.network.GoogleBooksService
+import com.example.guttenburg.data.network.RemoteDataSource
+import com.example.guttenburg.data.repository.BooksRepository
+import com.example.guttenburg.data.repository.BooksRepositoryImpl
 import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Singleton
 
+@InstallIn(SingletonComponent::class)
 @Module
-abstract class RepositoryModule {
+class RepositoryModule {
+
+    @Provides
+    fun provideIODispatcher(): CoroutineDispatcher {
+        return Dispatchers.IO
+    }
 
     @Singleton
-    @Binds
-    abstract fun provideBookRepository(bookRepository: BookRepositoryImpl): BookRepository
+    @Provides
+    fun bindBookRepository(
+        remoteDataSource: RemoteDataSource,
+        ioDispatcher: CoroutineDispatcher
+    ): BooksRepository {
+        return BooksRepositoryImpl(remoteDataSource, ioDispatcher)
+    }
+
 }

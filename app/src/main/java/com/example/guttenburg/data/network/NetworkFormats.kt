@@ -3,14 +3,15 @@ package com.example.guttenburg.data.network
 import com.squareup.moshi.Json
 
 data class NetworkFormats(
-    @Json(name = "application/x-mobipocket-ebook") val applicationXMobitPocketEbook: String?,
-    @Json(name = "application/epub+zip") val applicationEpubZip: String?,
-    @Json(name = "text/html") val textHtml: String?,
-    @Json(name = "application/octet-stream") val applicationOctetStream: String?,
-    @Json(name = "image/jpeg") val imageJpeg: String?,
-    @Json(name = "text/plain") val textPlain: String?,
-    @Json(name = "text/plain; charset=us-ascii") val textPlainCharsetUsAscii: String?,
-    @Json(name = "application/rdf+xml") val applicationRdfXml: String?
+    @Json(name = "application/x-mobipocket-ebook") var applicationXMobitPocketEbook: String? = null,
+    @Json(name = "application/epub+zip") var applicationEpubZip: String? = null,
+    @Json(name = "text/html") var textHtml: String? = null,
+    @Json(name = "application/octet-stream") var applicationOctetStream: String? = null,
+    @Json(name = "image/jpeg") var imageJpeg: String? = null,
+    @Json(name = "text/plain") var textPlain: String? = null,
+    @Json(name = "text/plain;charset=us-ascii") var textPlainCharsetUsAscii: String? = null,
+    @Json(name = "application/rdf+xml") var applicationRdfXml: String? = null,
+    @Json(name = "application/pdf") val applicationPdf: String?
 )
 
 
