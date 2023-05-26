@@ -1,4 +1,4 @@
-package com.example.guttenburg.data.network
+package com.example.guttenburg.data.network.googleBooksApi
 
 import retrofit2.http.GET
 import retrofit2.http.QueryMap

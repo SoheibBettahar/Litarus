@@ -1,4 +1,4 @@
-package com.example.guttenburg.data.network
+package com.example.guttenburg.data.network.guttendexApi
 
 import com.squareup.moshi.Json
 

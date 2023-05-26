@@ -1,6 +1,7 @@
-package com.example.guttenburg.data.network
+package com.example.guttenburg.data.network.guttendexApi
 
-import android.util.Log
+import com.example.guttenburg.data.database.DatabaseBook
+import com.example.guttenburg.data.network.guttendexApi.NetworkFormats
 import com.example.guttenburg.data.repository.Book
 import com.squareup.moshi.Json
 
@@ -21,8 +22,7 @@ data class NetworkBook(
 )
 
 
-fun NetworkBook.asExternalModel(): Book{
-    Log.d(TAG, "NetworkBook: $this")
+fun NetworkBook.asExternalModel(): Book {
 
     return Book(
         id,
@@ -31,3 +31,30 @@ fun NetworkBook.asExternalModel(): Book{
         imageUrl = formats?.imageJpeg ?: ""
     )
 }
+
+fun NetworkBook.asDatabaseModel(page: Int): DatabaseBook {
+
+    return DatabaseBook(
+        id,
+        title ?: "",
+        authors = authors.mapNotNull { it.name }.joinToString(separator = "#"),
+        imageUrl = formats?.imageJpeg ?: "",
+        subjects = getSubjectsText(subjects),
+        page = page,
+    )
+}
+
+
+private fun getSubjectsText(subjects: List<String>): String {
+    val subjectSet = mutableSetOf<String>()
+
+    for (subject in subjects) {
+        val genresInSubject = subject.split(" -- ")
+
+        for (genre in genresInSubject) subjectSet.add(genre)
+    }
+
+    return subjectSet.joinToString(", ")
+}
+
+
