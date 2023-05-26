@@ -3,11 +3,12 @@ package com.example.guttenburg.data
 import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.example.guttenburg.data.network.NetworkBook
 import com.example.guttenburg.data.network.RemoteDataSource
+import com.example.guttenburg.data.network.guttendexApi.NetworkBook
 
 private const val TAG = "BooksPagingSource"
 
+/*
 class BooksPagingSource(
     private val backend: RemoteDataSource,
     private val category: String,
@@ -17,7 +18,7 @@ class BooksPagingSource(
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, NetworkBook> {
         return try {
-            val nextPageNumber = params.key ?: 1
+            val nextPageNumber = params.key ?: GUTENDEX_STARTING_PAGE_INDEX
             val response = backend.getBooks(nextPageNumber, category, searchText)
 
             LoadResult.Page(
@@ -39,3 +40,5 @@ class BooksPagingSource(
         }
     }
 }
+
+ */

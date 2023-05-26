@@ -1,15 +1,13 @@
 package com.example.guttenburg.data.repository
 
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.map
-import com.example.guttenburg.data.BooksPagingSource
-import com.example.guttenburg.data.network.NetworkBook
+import androidx.paging.*
+import com.example.guttenburg.data.SearchBooksRemoteMediator
+import com.example.guttenburg.data.GetAllBooksRemoteMediator
+import com.example.guttenburg.data.database.DatabaseBook
+import com.example.guttenburg.data.database.LocalDataSource
+import com.example.guttenburg.data.database.asExternalModel
 import com.example.guttenburg.data.network.RemoteDataSource
-import com.example.guttenburg.data.network.asExternalModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -20,35 +18,49 @@ import javax.inject.Inject
 
 class BooksRepositoryImpl @Inject constructor(
     private val remoteDataSource: RemoteDataSource,
+    private val localDataSource: LocalDataSource,
     private val dispatcherIO: CoroutineDispatcher
 ) :
     BooksRepository {
 
     companion object {
-        private const val NETWORK_BOOKS_PAGE_SIZE = 4
+        private const val NETWORK_BOOKS_PAGE_SIZE = 10
     }
 
 
-    override fun getBooks(category: String, searchText: String): Flow<PagingData<Book>> {
+    @OptIn(ExperimentalPagingApi::class)
+    override fun getBooks(): Flow<PagingData<Book>> {
+        val pagingSourceFactory = {localDataSource.getAllBooks()}
+
+
         return Pager(
             config = PagingConfig(
                 pageSize = NETWORK_BOOKS_PAGE_SIZE,
                 enablePlaceholders = false
             ),
-            pagingSourceFactory = { BooksPagingSource(remoteDataSource, category, searchText) }
-        ).flow.map { pagingData -> pagingData.map(NetworkBook::asExternalModel) }
+            remoteMediator = GetAllBooksRemoteMediator(remoteDataSource, localDataSource),
+            pagingSourceFactory = pagingSourceFactory
+        ).flow
+            .map { pagingData -> pagingData.map(DatabaseBook::asExternalModel) }
             .flowOn(dispatcherIO)
-
     }
 
+    @OptIn(ExperimentalPagingApi::class)
+    override fun searchBooks(category: String, searchText: String): Flow<PagingData<Book>> {
+        val pagingSourceFactory = {localDataSource.booksByNameOrAuthorAndCategory(searchText, category)}
 
-    /*
-    flow {
-    val books =
-        remoteDataSource.getBooks(page, category).results.map(NetworkBook::asExternalModel)
-    emit(books)
-}.flowOn(dispatcherIO)
-     */
+
+        return Pager(
+            config = PagingConfig(
+                pageSize = NETWORK_BOOKS_PAGE_SIZE,
+                enablePlaceholders = false
+            ),
+            remoteMediator = SearchBooksRemoteMediator(searchText, category, remoteDataSource, localDataSource),
+            pagingSourceFactory = pagingSourceFactory
+        ).flow
+            .map { pagingData -> pagingData.map(DatabaseBook::asExternalModel) }
+            .flowOn(dispatcherIO)
+    }
 
 
     override fun getBook(id: Long, title: String, author: String): Flow<BookWithExtras> = flow {

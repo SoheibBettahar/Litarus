@@ -1,7 +1,7 @@
 package com.example.guttenburg.di
 
-import com.example.guttenburg.data.network.BooksService
-import com.example.guttenburg.data.network.GoogleBooksService
+import com.example.guttenburg.data.database.GuttenburgDatabase
+import com.example.guttenburg.data.database.LocalDataSource
 import com.example.guttenburg.data.network.RemoteDataSource
 import com.example.guttenburg.data.repository.BooksRepository
 import com.example.guttenburg.data.repository.BooksRepositoryImpl
@@ -26,9 +26,10 @@ class RepositoryModule {
     @Provides
     fun bindBookRepository(
         remoteDataSource: RemoteDataSource,
+        localDataSource: LocalDataSource,
         ioDispatcher: CoroutineDispatcher
     ): BooksRepository {
-        return BooksRepositoryImpl(remoteDataSource, ioDispatcher)
+        return BooksRepositoryImpl(remoteDataSource, localDataSource, ioDispatcher)
     }
 
 }

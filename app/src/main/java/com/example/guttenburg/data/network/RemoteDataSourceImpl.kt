@@ -1,13 +1,18 @@
 package com.example.guttenburg.data.network
 
 import com.example.guttenburg.BuildConfig
+import com.example.guttenburg.data.network.googleBooksApi.GoogleBooksService
+import com.example.guttenburg.data.network.googleBooksApi.NetworkGoogleBookPage
+import com.example.guttenburg.data.network.guttendexApi.BooksService
+import com.example.guttenburg.data.network.guttendexApi.NetworkBook
+import com.example.guttenburg.data.network.guttendexApi.NetworkBooksPage
 
 class RemoteDataSourceImpl(
     private val booksService: BooksService,
     private val googleBooksService: GoogleBooksService
 ) : RemoteDataSource {
 
-    override suspend fun getBooks(
+    override suspend fun searchBooks(
         page: Int,
         category: String,
         searchText: String
@@ -18,7 +23,11 @@ class RemoteDataSourceImpl(
             "search" to searchText,
         )
 
-        return booksService.getBooks(queryMap)
+        return booksService.searchBooks(queryMap)
+    }
+
+    override suspend fun getBooks(page: Int): NetworkBooksPage {
+        return booksService.getBooks(page)
     }
 
     override suspend fun getBook(id: Long): NetworkBook = booksService.getBook(id)

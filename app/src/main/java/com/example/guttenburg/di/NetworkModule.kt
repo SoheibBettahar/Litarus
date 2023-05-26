@@ -1,7 +1,7 @@
 package com.example.guttenburg.di
 
-import com.example.guttenburg.data.network.BooksService
-import com.example.guttenburg.data.network.GoogleBooksService
+import com.example.guttenburg.data.network.guttendexApi.BooksService
+import com.example.guttenburg.data.network.googleBooksApi.GoogleBooksService
 import com.example.guttenburg.data.network.RemoteDataSource
 import com.example.guttenburg.data.network.RemoteDataSourceImpl
 import com.squareup.moshi.Moshi
@@ -20,7 +20,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 @Module
 object NetworkModule {
-
+    
 
     @Singleton
     @Provides

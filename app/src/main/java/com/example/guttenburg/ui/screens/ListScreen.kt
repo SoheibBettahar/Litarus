@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -21,15 +22,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -38,13 +40,15 @@ import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.example.guttenburg.R
 import com.example.guttenburg.data.repository.Book
-import com.example.guttenburg.ui.BooksViewModel
 import com.example.guttenburg.ui.components.BookItem
 import com.example.guttenburg.ui.components.Category
 import com.example.guttenburg.ui.components.DEFAULT_CATEGORIES
+import com.example.guttenburg.ui.components.ErrorLayout
 import com.example.guttenburg.ui.theme.GuttenburgTheme
-import com.example.guttenburg.ui.util.withFadingEdgeEffect
+import com.example.guttenburg.ui.util.*
+import com.example.guttenburg.ui.viewmodels.BooksViewModel
 import kotlinx.coroutines.flow.flowOf
 
 
@@ -58,20 +62,11 @@ fun ListScreen(
 ) {
 
     val selectedCategory = viewModel.category.collectAsStateWithLifecycle()
-    val lazyPagedItems = viewModel.pagingDataFlow.collectAsLazyPagingItems()
+    val lazyPagedItems = viewModel.searchedBooksPagingDataFlow.collectAsLazyPagingItems()
     val searchText = remember { mutableStateOf("") }
 
-    val isRefreshSuccess = lazyPagedItems.loadState.refresh is LoadState.NotLoading
-    val isRefreshEmpty =
-        lazyPagedItems.loadState.refresh is LoadState.NotLoading && lazyPagedItems.itemCount == 0
-    val isRefreshLoading = lazyPagedItems.loadState.refresh == LoadState.Loading
-    val isRefreshError = lazyPagedItems.loadState.refresh is LoadState.Error
-    val isAppendLoading = lazyPagedItems.loadState.append is LoadState.Loading
-    val isAppendError = lazyPagedItems.loadState.append is LoadState.Error
-
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-        SearchTextField(
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
+        SearchTextField(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
             searchText = searchText.value,
             onTextChanged = { searchText.value = it },
             submitSearch = { viewModel.setSearchText(it) })
@@ -85,33 +80,36 @@ fun ListScreen(
         }
 
         Box(modifier = Modifier.fillMaxSize()) {
-            if (isRefreshSuccess) {
-                BooksList(
+            if (lazyPagedItems.isRefreshSuccess()) {
+                BooksGrid(
                     books = lazyPagedItems,
-                    isAppendLoading = isAppendLoading,
-                    isAppendError = isAppendError,
+                    isAppendLoading = lazyPagedItems.isAppendLoading(),
+                    isAppendError = lazyPagedItems.isAppendError(),
                     onBookItemClick = onBookItemClick,
-                    retry = { lazyPagedItems.retry() }
-                )
+                    retry = { lazyPagedItems.retry() })
             }
 
 
-            if (isRefreshLoading) {
+            if (lazyPagedItems.isRefreshLoading()) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
 
 
-            if (isRefreshError) {
-                RefreshErrorLayout(
-                    modifier = Modifier.align(Alignment.Center),
+            if (lazyPagedItems.isRefreshError()) {
+                ErrorLayout(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(horizontal = 16.dp),
                     onRetryClick = { lazyPagedItems.refresh() },
                     error = (lazyPagedItems.loadState.refresh as LoadState.Error).error
                 )
             }
 
-            if (isRefreshEmpty) {
+            if (lazyPagedItems.isRefreshEmpty()) {
                 RefreshEmptyLayout(
-                    modifier = Modifier.align(Alignment.Center)
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(horizontal = 16.dp)
                 )
             }
 
@@ -128,9 +126,13 @@ private fun SearchTextField(
     submitSearch: (String) -> Unit = {}
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
     val isFocused = remember { mutableStateOf(false) }
-    val borderColorAlpha: Float by animateFloatAsState(if (isFocused.value) 1.0f else 0.5f)
-
+    val borderColorAlpha: Float by animateFloatAsState(if (isFocused.value) 1.0f else 0.6f)
+    val leadingIconTint =
+        if (isFocused.value) MaterialTheme.colors.primary else MaterialTheme.colors.primary.copy(
+            alpha = 0.5f
+        )
 
     OutlinedTextField(
         modifier = modifier
@@ -140,23 +142,30 @@ private fun SearchTextField(
                 shape = RoundedCornerShape(24.dp)
             )
             .onFocusChanged { focusState -> isFocused.value = focusState.isFocused }
-            //.padding(bottom = 8.dp)
             .fillMaxWidth(),
         value = searchText,
-        //label = { if (!isFocused.value) Text(text = "Search") },
         onValueChange = onTextChanged,
-        placeholder = { Text(text = "Search") },
+        placeholder = {
+            Text(
+                text = "Search by Title, Author...", style = MaterialTheme.typography.body2
+            )
+        },
         singleLine = true,
-        shape = RoundedCornerShape(12.dp),
-        leadingIcon = { Icon(imageVector = Icons.Default.Search, contentDescription = "Search") },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = stringResource(R.string.search),
+                tint = leadingIconTint
+            )
+        },
         colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedBorderColor = Color.Transparent,
-            unfocusedBorderColor = Color.Transparent
+            focusedBorderColor = Color.Transparent, unfocusedBorderColor = Color.Transparent
         ),
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions {
             submitSearch(searchText)
             keyboardController?.hide()
+            focusManager.clearFocus()
         },
     )
 }
@@ -166,58 +175,36 @@ private fun SearchTextField(
 @Composable
 fun SearchTextFieldPreview() {
     GuttenburgTheme() {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            SearchTextField(searchText = "")
-        }
-
+        SearchTextField(searchText = "")
     }
 }
 
 
 @Composable
 fun RefreshEmptyLayout(modifier: Modifier = Modifier) {
-    Text(modifier = modifier, text = "No book found.")
+    Text(modifier = modifier, text = stringResource(R.string.no_books_found))
 }
 
-@Composable
-fun RefreshErrorLayout(modifier: Modifier = Modifier, error: Throwable, onRetryClick: () -> Unit) {
-    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(modifier = modifier, text = "Error $error", textAlign = TextAlign.Center)
-        Button(modifier = modifier, onClick = onRetryClick) {
-            Text(text = "retry")
-        }
-    }
-
-}
 
 @Composable
 fun AppendStateLayout(
-    modifier: Modifier = Modifier,
-    isLoading: Boolean,
-    isError: Boolean,
-    retry: () -> Unit = {}
+    modifier: Modifier = Modifier, isLoading: Boolean, isError: Boolean, retry: () -> Unit = {}
 ) {
     Box(
-        modifier = modifier
-            .fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     ) {
-        if (isLoading)
-            CircularProgressIndicator(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(vertical = 12.dp)
-                    .size(24.dp),
-                strokeWidth = 2.dp,
+        if (isLoading) CircularProgressIndicator(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(vertical = 12.dp)
+                .size(24.dp),
+            strokeWidth = 2.dp,
 
-                )
+            )
 
         if (isError) {
             IconButton(modifier = Modifier.align(Alignment.Center), onClick = retry) {
-                Icon(imageVector = Icons.Default.Refresh, contentDescription = "Refresh")
+                Icon(modifier = Modifier.size(28.dp),imageVector = Icons.Default.Refresh, contentDescription = "Refresh")
             }
         }
 
@@ -229,8 +216,7 @@ fun AppendStateLayout(
 @Composable
 fun AppStateLayoutPreview() {
     Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start
     ) {
         AppendStateLayout(
             modifier = Modifier
@@ -244,9 +230,7 @@ fun AppStateLayoutPreview() {
         AppendStateLayout(
             modifier = Modifier
                 .background(Color.Red)
-                .weight(1f),
-            isLoading = false,
-            isError = true
+                .weight(1f), isLoading = false, isError = true
         )
     }
 
@@ -288,7 +272,7 @@ fun CategoriesPreview() {
 }
 
 @Composable
-fun BooksList(
+fun BooksGrid(
     modifier: Modifier = Modifier,
     books: LazyPagingItems<Book>,
     isAppendLoading: Boolean,
@@ -296,7 +280,11 @@ fun BooksList(
     onBookItemClick: (id: Long, title: String, author: String) -> Unit = { _, _, _ -> },
     retry: () -> Unit = {}
 ) {
+
+    val scrollState = rememberLazyGridState()
+
     LazyVerticalGrid(
+        state = scrollState,
         modifier = modifier.withFadingEdgeEffect(),
         columns = GridCells.Adaptive(minSize = 168.dp),
         contentPadding = PaddingValues(top = 24.dp, bottom = 16.dp, start = 16.dp, end = 16.dp),
@@ -312,9 +300,7 @@ fun BooksList(
         if (isAppendLoading || isAppendError) {
             item(span = { GridItemSpan(maxLineSpan) }) {
                 AppendStateLayout(
-                    isLoading = isAppendLoading,
-                    isError = isAppendError,
-                    retry = retry
+                    isLoading = isAppendLoading, isError = isAppendError, retry = retry
                 )
             }
         }
@@ -326,72 +312,58 @@ fun BooksList(
 
 private val DEFAULT_BOOK_LIST = listOf(
     Book(
-        id = 0,
-        title = "Moby Dick",
-        authors = listOf("Herman Meville"),
-        imageUrl = ""
-    ),
-    Book(
+        id = 0, title = "Moby Dick", authors = listOf("Herman Meville"), imageUrl = ""
+    ), Book(
         id = 0,
         title = "Authority",
         authors = listOf("Jeff Vandermer"),
         imageUrl = "https://www.gutenberg.org/cache/epub/2641/pg2641.cover.medium.jpg"
-    ),
-    Book(
+    ), Book(
         id = 1,
         title = "The Adventures Of A dying Man",
         authors = listOf("William Shakespeare"),
         imageUrl = "https://www.gutenberg.org/cache/epub/2641/pg2641.cover.medium.jpg"
-    ),
-    Book(
+    ), Book(
         id = 2,
         title = "The Adventures Of A dying Man",
         authors = listOf("William Shakespeare"),
         imageUrl = "https://www.gutenberg.org/cache/epub/2641/pg2641.cover.medium.jpg"
-    ),
-    Book(
+    ), Book(
         id = 3,
         title = "The Adventures Of A dying Man",
         authors = listOf("William Shakespeare"),
         imageUrl = "https://www.gutenberg.org/cache/epub/2641/pg2641.cover.medium.jpg"
-    ),
-    Book(
+    ), Book(
         id = 4,
         title = "The Adventures Of A dying Man",
         authors = listOf("William Shakespeare"),
         imageUrl = "https://www.gutenberg.org/cache/epub/2641/pg2641.cover.medium.jpg"
-    ),
-    Book(
+    ), Book(
         id = 4,
         title = "The Adventures Of A dying Man",
         authors = listOf("William Shakespeare"),
         imageUrl = "https://www.gutenberg.org/cache/epub/2641/pg2641.cover.medium.jpg"
-    ),
-    Book(
+    ), Book(
         id = 5,
         title = "The Adventures Of A dying Man",
         authors = listOf("William Shakespeare"),
         imageUrl = "https://www.gutenberg.org/cache/epub/2641/pg2641.cover.medium.jpg"
-    ),
-    Book(
+    ), Book(
         id = 6,
         title = "The Adventures Of A dying Man",
         authors = listOf("William Shakespeare"),
         imageUrl = "https://www.gutenberg.org/cache/epub/2641/pg2641.cover.medium.jpg"
-    ),
-    Book(
+    ), Book(
         id = 7,
         title = "The Adventures Of A dying Man",
         authors = listOf("William Shakespeare"),
         imageUrl = "https://www.gutenberg.org/cache/epub/2641/pg2641.cover.medium.jpg"
-    ),
-    Book(
+    ), Book(
         id = 8,
         title = "The Adventures Of A dying Man",
         authors = listOf("William Shakespeare"),
         imageUrl = "https://www.gutenberg.org/cache/epub/2641/pg2641.cover.medium.jpg"
-    ),
-    Book(
+    ), Book(
         id = 9,
         title = "The Adventures Of A dying Man",
         authors = listOf("William Shakespeare"),
@@ -401,8 +373,8 @@ private val DEFAULT_BOOK_LIST = listOf(
 
 @Preview
 @Composable
-private fun BooksListPreview() {
-    BooksList(
+private fun BooksGridPreview() {
+    BooksGrid(
         modifier = Modifier.fillMaxSize(),
         books = flowOf(PagingData.from(DEFAULT_BOOK_LIST)).collectAsLazyPagingItems(),
         isAppendLoading = false,
