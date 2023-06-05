@@ -1,4 +1,4 @@
-package com.example.guttenburg.data.database
+package com.example.guttenburg.data.database.paging
 
 import androidx.room.Dao
 import androidx.room.Insert

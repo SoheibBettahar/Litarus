@@ -7,7 +7,6 @@ import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
@@ -25,29 +24,14 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.guttenburg.R
 import com.example.guttenburg.data.repository.Book
-import com.example.guttenburg.ui.theme.GuttenburgTheme
 
-@Composable
-fun Greeting(name: String) {
-    Box(contentAlignment = Alignment.Center) {
-        Text(text = "Hello $name")
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun DefaultPreview() {
-    GuttenburgTheme {
-        Greeting("Android")
-    }
-}
-
+private const val TAG = "BookItem"
 
 @Composable
 fun BookItem(
     modifier: Modifier = Modifier,
     book: Book,
-    onItemClick: (id: Long, title: String, author: String) -> Unit = { _, _, _ -> }
+    onItemClick: (id: Long, title: String, author: String?) -> Unit = { _, _, _ -> }
 ) {
     val bottomRadius = 4.dp
     Column(modifier = modifier
@@ -63,7 +47,7 @@ fun BookItem(
             onItemClick(
                 book.id,
                 book.title,
-                book.authors.firstOrNull() ?: ""
+                book.authors.firstOrNull()
             )
         }
 

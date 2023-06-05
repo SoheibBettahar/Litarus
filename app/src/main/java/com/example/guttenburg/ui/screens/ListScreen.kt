@@ -22,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -58,7 +57,7 @@ private const val TAG = "ListScreen"
 @Composable
 fun ListScreen(
     viewModel: BooksViewModel = hiltViewModel(),
-    onBookItemClick: (id: Long, title: String, author: String) -> Unit = { _, _, _ -> }
+    onBookItemClick: (id: Long, title: String, author: String?) -> Unit = { _, _, _ -> }
 ) {
 
     val selectedCategory = viewModel.category.collectAsStateWithLifecycle()
@@ -85,8 +84,8 @@ fun ListScreen(
                     books = lazyPagedItems,
                     isAppendLoading = lazyPagedItems.isAppendLoading(),
                     isAppendError = lazyPagedItems.isAppendError(),
-                    onBookItemClick = onBookItemClick,
-                    retry = { lazyPagedItems.retry() })
+                    onBookItemClick = onBookItemClick
+                ) { lazyPagedItems.retry() }
             }
 
 
@@ -277,7 +276,7 @@ fun BooksGrid(
     books: LazyPagingItems<Book>,
     isAppendLoading: Boolean,
     isAppendError: Boolean,
-    onBookItemClick: (id: Long, title: String, author: String) -> Unit = { _, _, _ -> },
+    onBookItemClick: (id: Long, title: String, author: String?) -> Unit = { _, _, _ -> },
     retry: () -> Unit = {}
 ) {
 

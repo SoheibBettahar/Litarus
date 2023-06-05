@@ -5,9 +5,9 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
-import com.example.guttenburg.data.database.DatabaseBook
-import com.example.guttenburg.data.database.LocalDataSource
-import com.example.guttenburg.data.database.RemoteKeys
+import com.example.guttenburg.data.database.paging.DatabaseBook
+import com.example.guttenburg.data.database.BooksLocalDataSource
+import com.example.guttenburg.data.database.paging.RemoteKeys
 import com.example.guttenburg.data.network.RemoteDataSource
 import com.example.guttenburg.data.network.guttendexApi.asDatabaseModel
 import retrofit2.HttpException
@@ -19,7 +19,7 @@ private const val TAG = "TrainingBooksRemoteMediator"
 @OptIn(ExperimentalPagingApi::class)
 class GetAllBooksRemoteMediator(
     private val bookRemoteDataSource: RemoteDataSource,
-    private val booksLocalDataSource: LocalDataSource,
+    private val booksLocalDataSource: BooksLocalDataSource,
 ) : RemoteMediator<Int, DatabaseBook>() {
 
     override suspend fun initialize(): InitializeAction {

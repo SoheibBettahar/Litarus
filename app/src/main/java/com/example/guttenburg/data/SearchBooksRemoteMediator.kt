@@ -2,9 +2,9 @@ package com.example.guttenburg.data
 
 import android.util.Log
 import androidx.paging.*
-import com.example.guttenburg.data.database.DatabaseBook
-import com.example.guttenburg.data.database.LocalDataSource
-import com.example.guttenburg.data.database.RemoteKeys
+import com.example.guttenburg.data.database.paging.DatabaseBook
+import com.example.guttenburg.data.database.BooksLocalDataSource
+import com.example.guttenburg.data.database.paging.RemoteKeys
 import com.example.guttenburg.data.network.RemoteDataSource
 import com.example.guttenburg.data.network.guttendexApi.asDatabaseModel
 import retrofit2.HttpException
@@ -19,7 +19,7 @@ class SearchBooksRemoteMediator(
     private val searchText: String,
     private val category: String,
     private val bookRemoteDataSource: RemoteDataSource,
-    private val booksLocalDataSource: LocalDataSource,
+    private val booksLocalDataSource: BooksLocalDataSource,
 ) : RemoteMediator<Int, DatabaseBook>() {
 
     override suspend fun initialize(): InitializeAction {

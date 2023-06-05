@@ -1,21 +1,14 @@
-package com.example.guttenburg.ui
+package com.example.guttenburg.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.guttenburg.data.Result
-import com.example.guttenburg.data.Result.Loading.asResult
 import com.example.guttenburg.data.repository.Book
-import com.example.guttenburg.data.repository.BookWithExtras
 import com.example.guttenburg.data.repository.BooksRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
-
-
-private const val TAG = "BooksViewModel"
 
 @HiltViewModel
 class BooksViewModel @Inject constructor(private val booksRepository: BooksRepository) :
@@ -26,15 +19,18 @@ class BooksViewModel @Inject constructor(private val booksRepository: BooksRepos
     private val searchText = MutableStateFlow(value = "")
 
 
-    val pagingDataFlow: Flow<PagingData<Book>> =
+    val searchedBooksPagingDataFlow: Flow<PagingData<Book>> =
         combine(category, searchText, ::Pair)
             .flatMapLatest { (category, searchText) -> searchBooks(category, searchText) }
             .distinctUntilChanged()
             .cachedIn(viewModelScope)
 
+    fun getAllBooks(): Flow<PagingData<Book>> {
+        return booksRepository.getBooks()
+    }
 
     private fun searchBooks(category: String, searchText: String): Flow<PagingData<Book>> =
-        booksRepository.getBooks(category, searchText)
+        booksRepository.searchBooks(category, searchText)
 
     fun selectCategory(selected: String) {
         category.value = selected
@@ -43,18 +39,5 @@ class BooksViewModel @Inject constructor(private val booksRepository: BooksRepos
     fun setSearchText(text: String) {
         searchText.value = text
     }
-
-
-    private val _book: MutableStateFlow<Result<BookWithExtras>> = MutableStateFlow(Result.Loading)
-    val book: StateFlow<Result<BookWithExtras>>
-        get() = _book
-
-    fun getBook(id: Long, title: String, author: String) {
-        booksRepository.getBook(id, title, author)
-            .asResult()
-            .onEach { _book.value = it }
-            .launchIn(viewModelScope)
-    }
-
 
 }
