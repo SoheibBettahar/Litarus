@@ -1,8 +1,6 @@
 package com.example.guttenburg.data.network.guttendexApi
 
-import com.example.guttenburg.data.database.DatabaseBook
-import com.example.guttenburg.data.network.guttendexApi.NetworkFormats
-import com.example.guttenburg.data.repository.Book
+import com.example.guttenburg.data.database.paging.DatabaseBook
 import com.squareup.moshi.Json
 
 private const val TAG = "NetworkBook"
@@ -22,15 +20,6 @@ data class NetworkBook(
 )
 
 
-fun NetworkBook.asExternalModel(): Book {
-
-    return Book(
-        id,
-        title ?: "",
-        authors = authors.mapNotNull { it.name },
-        imageUrl = formats?.imageJpeg ?: ""
-    )
-}
 
 fun NetworkBook.asDatabaseModel(page: Int): DatabaseBook {
 
