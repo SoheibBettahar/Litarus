@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.guttenburg"
-        minSdk 24
+        minSdk 26
         targetSdk 33
         versionCode 1
         versionName "1.0"
@@ -82,7 +82,9 @@ dependencies {
 
     //hilt
     implementation("com.google.dagger:hilt-android:$hilt_version")
+    kapt ("androidx.hilt:hilt-compiler:1.0.0")
     kapt("com.google.dagger:hilt-android-compiler:$hilt_version")
+    implementation ("androidx.hilt:hilt-work:1.0.0")
 
     //navigation
     implementation "androidx.navigation:navigation-compose:$nav_version"
@@ -106,9 +108,14 @@ dependencies {
     kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-paging:$room_version"
 
+    //workmanager
+    implementation "androidx.work:work-runtime-ktx:$work_version"
 
-
+    //accompanist-systemuicontroller (status bar manipulation from compose)
     implementation "com.google.accompanist:accompanist-systemuicontroller:0.28.0"
+
+    // Jsoup HTML Parser.
+    implementation "org.jsoup:jsoup:1.15.2"
 
 
 

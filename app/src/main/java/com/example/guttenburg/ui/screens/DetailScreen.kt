@@ -17,6 +17,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -24,14 +25,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.guttenburg.R
 import com.example.guttenburg.data.Result
 import com.example.guttenburg.data.repository.BookWithExtras
-import com.example.guttenburg.ui.viewmodels.BooksViewModel
+import com.example.guttenburg.download.DownloadStatus
 import com.example.guttenburg.ui.components.BookCover
 import com.example.guttenburg.ui.components.ErrorLayout
 import com.example.guttenburg.ui.theme.GuttenburgTheme
 import com.example.guttenburg.ui.util.withFadingEdgeEffect
+import com.example.guttenburg.ui.viewmodels.BookDetailViewModel
 
 private const val TAG = "DetailScreen"
 
@@ -68,23 +71,34 @@ private val DEFAULT_BOOK_WITH_EXTRAS = BookWithExtras(
     imageUrl = "https://www.gutenberg.org/cache/epub/145/pg145.cover.medium.jpg",
     downloadCount = 130471,
     language = "English",
-    authors = "Eliot, George"
+    authors = "Eliot, George",
+    downloadId = null,
+    fileUri = null
 )
 
 
 @Composable
 fun DetailScreen(
-    viewModel: BooksViewModel = hiltViewModel(),
-    id: Long,
-    title: String,
-    author: String,
-    onBackPress: () -> Unit = {}
+    viewModel: BookDetailViewModel = hiltViewModel(),
+    onBackPress: () -> Unit = {},
+    onStartReadingPress: (bookId: Long) -> Unit = {},
+    onShowSnackbar: (String) -> Unit = {}
 ) {
     val book = viewModel.book.collectAsState()
     val result = book.value
-    LaunchedEffect(key1 = Unit) {
-        viewModel.getBook(id, title, author)
+    val downloadStatus =
+        viewModel.downloadStatus.collectAsStateWithLifecycle(initialValue = DownloadStatus.NotDownloading)
+    val downloadProgress = viewModel.downloadProgress.collectAsStateWithLifecycle(initialValue = 0f)
+    val downloadError =
+        viewModel.downloadErrorOrNull.collectAsStateWithLifecycle(initialValue = null)
+
+
+    LaunchedEffect(key1 = downloadError.value) {
+        downloadError.value?.let {
+            onShowSnackbar(it.toString())
+        }
     }
+
 
     Column(modifier = Modifier.fillMaxSize()) {
 
@@ -93,7 +107,15 @@ fun DetailScreen(
         Box(modifier = Modifier.fillMaxSize()) {
 
             if (result is Result.Success) {
-                BookDetails(modifier = Modifier.fillMaxSize(), result.data)
+                BookDetails(
+                    modifier = Modifier.fillMaxSize(),
+                    book = result.data,
+                    downloadStatus = downloadStatus.value,
+                    downloadProgress = downloadProgress.value,
+                    onDownloadClick = viewModel::downloadBook,
+                    onStartReadingClick = { onStartReadingPress(it.id) },
+                    onCancelDownload = viewModel::cancelDownload
+                )
             }
 
 
@@ -109,8 +131,7 @@ fun DetailScreen(
                 ErrorLayout(
                     modifier = Modifier.align(Alignment.Center),
                     error = result.exception,
-                    onRetryClick = { //TODO: implement this function
-                    }
+                    onRetryClick = { viewModel.getBook() }
                 )
         }
 
@@ -153,11 +174,16 @@ fun AppBarPreview() {
 }
 
 @Composable
-fun BookDetails(modifier: Modifier = Modifier, book: BookWithExtras) {
-
-    LaunchedEffect(key1 = Unit){
-        Log.d(TAG, "BookDetails: $book")
-    }
+fun BookDetails(
+    modifier: Modifier = Modifier,
+    book: BookWithExtras,
+    downloadStatus: DownloadStatus = DownloadStatus.NotDownloading,
+    downloadProgress: Float = 0f,
+    onDownloadClick: (BookWithExtras) -> Unit = {},
+    onStartReadingClick: (BookWithExtras) -> Unit = {},
+    onCancelDownload: (BookWithExtras) -> Unit = {}
+) {
+    Log.d(TAG, "BookDetails: $book")
 
 
     Column(
@@ -192,19 +218,38 @@ fun BookDetails(modifier: Modifier = Modifier, book: BookWithExtras) {
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        if (book.authors.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(8.dp))
 
+            Text(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                text = book.authors,
+                style = MaterialTheme.typography.body1,
+                textAlign = TextAlign.Center
+            )
+        }
 
-        Text(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            text = book.authors,
-            style = MaterialTheme.typography.body1,
-            textAlign = TextAlign.Center
-        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (book.fileUri == null && book.downloadId != null) {
+            DownloadProgressIndicator(
+                downloadStatus = downloadStatus,
+                downloadProgress = downloadProgress
+            )
+        } else {
+            Spacer(modifier = Modifier.height(2.dp))
+        }
+
 
         Spacer(modifier = Modifier.height(18.dp))
 
-        StartReadingButton(modifier = Modifier.padding(horizontal = 16.dp))
+        StartReadingButton(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            book = book,
+            onDownloadClick = onDownloadClick,
+            onStartReadingClick = onStartReadingClick,
+            onCancelDownloadClick = onCancelDownload
+        )
 
         Spacer(modifier = Modifier.height(18.dp))
 
@@ -226,30 +271,82 @@ fun BookDetails(modifier: Modifier = Modifier, book: BookWithExtras) {
 
 }
 
+@Composable
+fun DownloadProgressIndicator(
+    modifier: Modifier = Modifier,
+    downloadStatus: DownloadStatus,
+    downloadProgress: Float
+) {
+    val localModifier = modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp)
+    val color = MaterialTheme.colors.secondary
+    val strokeCap = StrokeCap.Round
+
+    if (downloadStatus == DownloadStatus.NotDownloading || downloadStatus == DownloadStatus.Pending)
+        LinearProgressIndicator(
+            modifier = localModifier,
+            color = color,
+            strokeCap = strokeCap
+        )
+    else
+        LinearProgressIndicator(
+            progress = downloadProgress,
+            modifier = localModifier,
+            color = color,
+            strokeCap = strokeCap
+        )
+}
+
 
 @Composable
-fun StartReadingButton(modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
+fun StartReadingButton(
+    modifier: Modifier = Modifier,
+    book: BookWithExtras,
+    onStartReadingClick: (BookWithExtras) -> Unit = {},
+    onDownloadClick: (BookWithExtras) -> Unit = {},
+    onCancelDownloadClick: (BookWithExtras) -> Unit = {}
+) {
+    val buttonTextId = when {
+        book.downloadId == null && book.fileUri == null -> R.string.download
+        book.fileUri == null -> R.string.cancel
+        else -> R.string.start_reading
+    }
+    val onClick: () -> Unit = {
+        when {
+            book.downloadId == null && book.fileUri == null -> onDownloadClick(book)
+            book.fileUri == null -> onCancelDownloadClick(book)
+            else -> onStartReadingClick(book)
+        }
+    }
+
+
     Button(
         modifier = modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(
             backgroundColor = MaterialTheme.colors.secondary
         ), onClick = onClick,
         shape = RoundedCornerShape(12.dp)
     ) {
-        Text(text = stringResource(R.string.start_reading), style = MaterialTheme.typography.body1)
+        Text(text = stringResource(buttonTextId), style = MaterialTheme.typography.body1)
     }
 }
 
 @Preview
 @Composable
 private fun StartReadingButtonPreview() {
-    StartReadingButton()
+    StartReadingButton(book = DEFAULT_BOOK_WITH_EXTRAS)
 }
 
 @Preview
 @Composable
 fun BookDetailsPreview() {
     GuttenburgTheme() {
-        BookDetails(modifier = Modifier.fillMaxSize(), book = DEFAULT_BOOK_WITH_EXTRAS)
+        BookDetails(
+            modifier = Modifier.fillMaxSize(),
+            book = DEFAULT_BOOK_WITH_EXTRAS.copy(downloadId = 5),
+            downloadProgress = 0.5f,
+            downloadStatus = DownloadStatus.Pending
+        )
     }
 }
 

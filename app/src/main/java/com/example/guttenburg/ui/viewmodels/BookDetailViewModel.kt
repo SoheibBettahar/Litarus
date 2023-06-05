@@ -1,34 +1,93 @@
 package com.example.guttenburg.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.guttenburg.data.Result
-import com.example.guttenburg.data.Result.Loading.asResult
 import com.example.guttenburg.data.repository.BookWithExtras
 import com.example.guttenburg.data.repository.BooksRepository
+import com.example.guttenburg.download.DownloadStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-//saved state handle
+
+private const val TAG = "BookDetailViewModel"
+
 @HiltViewModel
-class BookDetailViewModel @Inject constructor(private val booksRepository: BooksRepository, private val savedStateHandle: SavedStateHandle) :
+class BookDetailViewModel @Inject constructor(
+    private val booksRepository: BooksRepository,
+    private val savedStateHandle: SavedStateHandle
+) :
     ViewModel() {
+
+    private val id: Long = savedStateHandle["id"] ?: -1
+    private val title: String = savedStateHandle["title"] ?: ""
+    private val author: String = savedStateHandle["author"] ?: ""
+
 
     private val _book: MutableStateFlow<Result<BookWithExtras>> = MutableStateFlow(Result.Loading)
     val book: StateFlow<Result<BookWithExtras>>
         get() = _book
 
-    fun getBook(id: Long, title: String, author: String) {
-        booksRepository.getBook(id, title, author)
-            .asResult()
-            .onEach { _book.value = it }
-            .launchIn(viewModelScope)
+
+    private val downloadId = book
+        .filter { it is Result.Success<BookWithExtras> }
+        .map { (it as Result.Success).data.downloadId }
+        .distinctUntilChanged()
+
+    val downloadProgress = downloadId.filterNotNull()
+        .flatMapLatest { booksRepository.getDownloadProgress(it) }
+        .distinctUntilChanged()
+
+    val downloadStatus = downloadId.filterNotNull()
+        .flatMapLatest { booksRepository.getDownloadStatus(it) }
+        .onEach { Log.d(TAG, "downloadStatus: $it") }
+        .distinctUntilChanged()
+
+    val downloadErrorOrNull = downloadStatus
+        .map { status -> (status as? DownloadStatus.Failed)?.error }
+        .distinctUntilChanged()
+
+
+    init {
+        getBook()
     }
 
+    fun getBook() {
 
+        viewModelScope.launch {
+            try {
+                if (!booksRepository.containsBookWithExtras(id)) {
+                    _book.value = Result.Loading
+                    booksRepository.fetchBookWithExtras(id, title, author)
+                }
+                booksRepository.getBookWithExtras(id)
+                    .map { Result.Success(it) }
+                    .onEach { _book.value = it }
+                    .collect()
+            } catch (exception: Exception) {
+                _book.value = Result.Error(exception)
+            }
+        }
+
+    }
+
+    fun downloadBook(book: BookWithExtras) {
+        Log.d(TAG, "downloadBook: $book")
+        viewModelScope.launch {
+            booksRepository.downloadBook(book)
+        }
+    }
+
+    fun cancelDownload(book: BookWithExtras) {
+        viewModelScope.launch {
+            book.downloadId?.let {
+                booksRepository.cancelDownload(downloadId = it)
+            }
+
+        }
+    }
 }
