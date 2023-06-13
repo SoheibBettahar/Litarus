@@ -1,21 +1,19 @@
 package com.example.guttenburg.data.repository
 
 import android.util.Log
-import androidx.core.net.toUri
 import androidx.paging.*
 import com.example.guttenburg.data.GetAllBooksRemoteMediator
 import com.example.guttenburg.data.SearchBooksRemoteMediator
 import com.example.guttenburg.data.database.BooksLocalDataSource
-import com.example.guttenburg.data.database.ReaderLocalDataSource
 import com.example.guttenburg.data.database.detail.DatabaseBookWithExtras
 import com.example.guttenburg.data.database.detail.asExternalModel
 import com.example.guttenburg.data.database.paging.DatabaseBook
 import com.example.guttenburg.data.database.paging.asExternalModel
 import com.example.guttenburg.data.network.RemoteDataSource
+import com.example.guttenburg.data.repository.model.Book
+import com.example.guttenburg.data.repository.model.BookWithExtras
 import com.example.guttenburg.download.DownloadStatus
 import com.example.guttenburg.download.Downloader
-import com.example.guttenburg.reader.createEpubBook
-import com.example.guttenburg.reader.models.EpubBook
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -30,11 +28,9 @@ private const val TAG = "BooksRepositoryImpl"
 class BooksRepositoryImpl @Inject constructor(
     private val remoteDataSource: RemoteDataSource,
     private val booksLocalDataSource: BooksLocalDataSource,
-    private val readerLocalDataSource: ReaderLocalDataSource,
     private val downloader: Downloader,
     private val dispatcherIO: CoroutineDispatcher
-) :
-    BooksRepository {
+) : BooksRepository {
 
     companion object {
         private const val NETWORK_BOOKS_PAGE_SIZE = 10
@@ -112,25 +108,18 @@ class BooksRepositoryImpl @Inject constructor(
 
     override suspend fun downloadBook(book: BookWithExtras) {
         withContext(dispatcherIO) {
-            book.epubDownloadUrl?.let {
-                val downloadId = downloader.downloadFile(it, book.title, book.authors)
-                val databaseBook = DatabaseBookWithExtras(
-                    book.id,
+            Log.d(TAG, "book: $book")
+            book.downloadUrl?.let { downloadUrl ->
+                val downloadId = downloader.downloadFile(
+                    downloadUrl,
                     book.title,
-                    book.description,
-                    book.pageCount,
-                    imageUrl = book.imageUrl,
-                    epubDownloadUrl = book.epubDownloadUrl,
-                    downloadCount = book.downloadCount,
-                    language = book.language,
-                    authors = book.authors,
-                    fileUriString = book.fileUri?.toString(),
-                    downloadId = downloadId
+                    book.authors,
+                    book.fileExtension
                 )
 
-                booksLocalDataSource.updateBookWithExtras(bookWithExtras = databaseBook)
+                booksLocalDataSource.getBookWithExtrasById(book.id)?.copy(downloadId = downloadId)
+                    ?.let { booksLocalDataSource.updateBookWithExtras(bookWithExtras = it) }
 
-                Log.d(TAG, "downloadBook: $databaseBook")
             }
         }
     }
@@ -139,12 +128,7 @@ class BooksRepositoryImpl @Inject constructor(
         withContext(dispatcherIO) {
             val bookWithExtras =
                 booksLocalDataSource.getBookWithExtrasByDownloadId(downloadId) ?: return@withContext
-            val fileUriString = downloader.getFileUriString(downloadId).also {
-                Log.d(
-                    TAG,
-                    "addFileUriToDownloadedBook: $it"
-                )
-            }
+            val fileUriString = downloader.getFileUriString(downloadId)
 
             booksLocalDataSource.updateBookWithExtras(
                 bookWithExtras.copy(
@@ -174,13 +158,5 @@ class BooksRepositoryImpl @Inject constructor(
     override fun getDownloadStatus(downloadId: Long): Flow<DownloadStatus> {
         return downloader.getDownloadStatus(downloadId = downloadId).flowOn(dispatcherIO)
     }
-
-    override fun loadEbook(bookId: Long): Flow<EpubBook> {
-        return booksLocalDataSource.getBookWithExtras(bookId)
-            .map { createEpubBook(it.fileUriString!!.toUri().path!!) }
-            .onEach { Log.d(TAG, "loadEbook: $it") }
-            .flowOn(dispatcherIO)
-    }
-
 
 }

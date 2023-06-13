@@ -21,7 +21,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -32,7 +31,6 @@ import com.example.guttenburg.Destination.*
 import com.example.guttenburg.download.DownloadReceiver
 import com.example.guttenburg.ui.screens.DetailScreen
 import com.example.guttenburg.ui.screens.ListScreen
-import com.example.guttenburg.ui.screens.ReaderScreen
 import com.example.guttenburg.ui.screens.TrainingScreen
 import com.example.guttenburg.ui.theme.GuttenburgTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -54,7 +52,6 @@ class MainActivity : ComponentActivity() {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
         registerReceiver(downloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
-        lifecycleScope
 
         setContent {
             GuttenburgApp()
@@ -138,22 +135,9 @@ class MainActivity : ComponentActivity() {
             ) {
                 DetailScreen(
                     onBackPress = { navController.navigateUp() },
-                    onStartReadingPress = {bookId ->
-                        Log.d(TAG, "GuttenburgNavHost: bookId: $bookId")
-                        val route = "${BookReader.route}/$bookId"
-                        navController.navigateSingleTopTo(route)
-                    },
                     onShowSnackbar = onShowSnackBar
                 )
             }
-
-            composable(
-                route = "${BookReader.route}/{bookId}",
-                arguments = listOf(navArgument("bookId") { type = NavType.LongType })
-            ) {
-                ReaderScreen(onBackPress = { navController.navigateUp()})
-            }
-
         }
     }
 

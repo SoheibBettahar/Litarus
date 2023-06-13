@@ -75,6 +75,11 @@ val Typography = Typography(
         fontFamily = playfairDisplayFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp
+    ),
+    caption = TextStyle(
+        fontFamily = poppinsFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp
     )
 
 )

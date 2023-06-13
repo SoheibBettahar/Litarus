@@ -1,4 +1,4 @@
-package com.example.guttenburg.data.repository
+package com.example.guttenburg.data.repository.model
 
 data class Book(
     val id: Long,

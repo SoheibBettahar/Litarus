@@ -2,7 +2,6 @@
     <string name="app_name">guttenburg</string>
     <string name="flavor">Main</string>
     <string name="book_cover">Book Cover</string>
-    <string name="start_reading">Start Reading</string>
     <string name="download">Download</string>
     <string name="cancel">Cancel</string>
     <string name="details">Details</string>
@@ -11,4 +10,7 @@
     <string name="no_books_found">No books found.</string>
     <string name="retry">Retry</string>
     <string name="search">Search</string>
+    <string name="table_of_content">Table of content</string>
+    <string name="download_successfully">Downloaded Successfully</string>
+    <string name="check_icon">Check Icon</string>
 </resources>

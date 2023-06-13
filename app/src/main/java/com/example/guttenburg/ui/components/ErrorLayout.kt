@@ -14,7 +14,7 @@ import com.example.guttenburg.R
 
 
 @Composable
-fun ErrorLayout(modifier: Modifier = Modifier, error: Throwable?, onRetryClick: () -> Unit) {
+fun ErrorLayout(modifier: Modifier = Modifier, error: Throwable?, onRetryClick: () -> Unit = {}) {
 
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Text(modifier = modifier, text = "$error", textAlign = TextAlign.Center)

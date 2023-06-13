@@ -1,4 +1,4 @@
-package com.example.guttenburg.data.repository
+package com.example.guttenburg.data.repository.model
 
 import android.net.Uri
 
@@ -7,7 +7,8 @@ data class BookWithExtras(
     val title: String,
     val description: String,
     val pageCount: Int?,
-    val epubDownloadUrl: String?,
+    val downloadUrl: String?,
+    val fileExtension: String,
     val imageUrl: String,
     val downloadCount: Int? = null,
     val language: String? = null,

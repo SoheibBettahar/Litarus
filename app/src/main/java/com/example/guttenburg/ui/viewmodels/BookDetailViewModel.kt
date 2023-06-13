@@ -5,7 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.guttenburg.data.Result
-import com.example.guttenburg.data.repository.BookWithExtras
+import com.example.guttenburg.data.repository.model.BookWithExtras
 import com.example.guttenburg.data.repository.BooksRepository
 import com.example.guttenburg.download.DownloadStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +19,7 @@ private const val TAG = "BookDetailViewModel"
 @HiltViewModel
 class BookDetailViewModel @Inject constructor(
     private val booksRepository: BooksRepository,
-    private val savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle
 ) :
     ViewModel() {
 
@@ -45,10 +45,7 @@ class BookDetailViewModel @Inject constructor(
     val downloadStatus = downloadId.filterNotNull()
         .flatMapLatest { booksRepository.getDownloadStatus(it) }
         .onEach { Log.d(TAG, "downloadStatus: $it") }
-        .distinctUntilChanged()
-
-    val downloadErrorOrNull = downloadStatus
-        .map { status -> (status as? DownloadStatus.Failed)?.error }
+        .onEach { if (it is DownloadStatus.Paused) Log.d(TAG, "Paused Reason: ${it.reason}") }
         .distinctUntilChanged()
 
 

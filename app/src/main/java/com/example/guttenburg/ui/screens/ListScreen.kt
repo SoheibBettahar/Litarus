@@ -40,7 +40,7 @@ import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.guttenburg.R
-import com.example.guttenburg.data.repository.Book
+import com.example.guttenburg.data.repository.model.Book
 import com.example.guttenburg.ui.components.BookItem
 import com.example.guttenburg.ui.components.Category
 import com.example.guttenburg.ui.components.DEFAULT_CATEGORIES

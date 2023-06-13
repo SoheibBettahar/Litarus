@@ -2,7 +2,7 @@ package com.example.guttenburg.data.database.paging
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.guttenburg.data.repository.Book
+import com.example.guttenburg.data.repository.model.Book
 
 private const val TAG = "DatabaseBook"
 @Entity(tableName = "book")

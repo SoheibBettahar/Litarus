@@ -1,22 +1,21 @@
 package com.example.guttenburg.ui.screens
 
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -28,8 +27,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.guttenburg.R
 import com.example.guttenburg.data.Result
-import com.example.guttenburg.data.repository.BookWithExtras
+import com.example.guttenburg.data.repository.model.BookWithExtras
+import com.example.guttenburg.download.DownloadError
 import com.example.guttenburg.download.DownloadStatus
+import com.example.guttenburg.ui.components.AppBar
 import com.example.guttenburg.ui.components.BookCover
 import com.example.guttenburg.ui.components.ErrorLayout
 import com.example.guttenburg.ui.theme.GuttenburgTheme
@@ -67,7 +68,8 @@ private val DEFAULT_BOOK_WITH_EXTRAS = BookWithExtras(
             " provincial town during the time of social unrest prior to the first Reform Bill of " +
             "1832. It is told through the lives of Dorothea Brooke and Dr Tertius Lydgate and includes a host of characters who illuminate the condition of English life in the mid 19th century. This is an analysis of the life of an English provincial town during the time of social unrest prior to the first Reform Bill of 1832. It is told through the lives of Dorothea Brooke and Dr Tertius Lydgate and includes a host of characters who illuminate the condition of English life in the mid 19th century. This is an analysis of the life of an English provincial town during the time of social unrest prior to the first Reform Bill of 1832. It is told through the lives of Dorothea Brooke and Dr Tertius Lydgate and includes a host of characters who illuminate the condition of English life in the mid 19th century. This is an analysis of the life of an English provincial town during the time of social unrest prior to the first Reform Bill of 1832. It is told through the lives of Dorothea Brooke and Dr Tertius Lydgate and includes a host of characters who illuminate the condition of English life in the mid 19th century. This is an analysis of the life of an English provincial town during the time of social unrest prior to the first Reform Bill of 1832. It is told through the lives of Dorothea Brooke and Dr Tertius Lydgate and includes a host of characters who illuminate the condition of English life in the mid 19th century.",
     pageCount = 740,
-    epubDownloadUrl = "https://www.gutenberg.org/ebooks/145.txt.utf-8",
+    downloadUrl = "https://www.gutenberg.org/ebooks/145.txt.utf-8",
+    fileExtension = ".epub",
     imageUrl = "https://www.gutenberg.org/cache/epub/145/pg145.cover.medium.jpg",
     downloadCount = 130471,
     language = "English",
@@ -81,7 +83,6 @@ private val DEFAULT_BOOK_WITH_EXTRAS = BookWithExtras(
 fun DetailScreen(
     viewModel: BookDetailViewModel = hiltViewModel(),
     onBackPress: () -> Unit = {},
-    onStartReadingPress: (bookId: Long) -> Unit = {},
     onShowSnackbar: (String) -> Unit = {}
 ) {
     val book = viewModel.book.collectAsState()
@@ -89,20 +90,33 @@ fun DetailScreen(
     val downloadStatus =
         viewModel.downloadStatus.collectAsStateWithLifecycle(initialValue = DownloadStatus.NotDownloading)
     val downloadProgress = viewModel.downloadProgress.collectAsStateWithLifecycle(initialValue = 0f)
-    val downloadError =
-        viewModel.downloadErrorOrNull.collectAsStateWithLifecycle(initialValue = null)
 
+    LaunchedEffect(key1 = downloadStatus.value) {
+        val downloadState = downloadStatus.value
 
-    LaunchedEffect(key1 = downloadError.value) {
-        downloadError.value?.let {
-            onShowSnackbar(it.toString())
+        if (downloadState is DownloadStatus.Successful || downloadState is DownloadStatus.Failed) {
+            val message =
+                if (downloadState is DownloadStatus.Successful) "Download Completed Successfully"
+                else when ((downloadState as DownloadStatus.Failed).error) {
+                    DownloadError.InsufficientSpaceError -> "Insufficient Space"
+                    DownloadError.HttpError -> "Internet Unavailable"
+                    DownloadError.UnknownError -> "An Error Happened"
+                }
+
+            onShowSnackbar(message)
         }
+
+
     }
 
 
     Column(modifier = Modifier.fillMaxSize()) {
 
-        AppBar(modifier = Modifier.fillMaxWidth(), onBackPress = onBackPress)
+        AppBar(
+            modifier = Modifier.fillMaxWidth(),
+            title = stringResource(R.string.details),
+            onBackPress = onBackPress
+        )
 
         Box(modifier = Modifier.fillMaxSize()) {
 
@@ -113,7 +127,6 @@ fun DetailScreen(
                     downloadStatus = downloadStatus.value,
                     downloadProgress = downloadProgress.value,
                     onDownloadClick = viewModel::downloadBook,
-                    onStartReadingClick = { onStartReadingPress(it.id) },
                     onCancelDownload = viewModel::cancelDownload
                 )
             }
@@ -139,31 +152,6 @@ fun DetailScreen(
 
 }
 
-@Composable
-fun AppBar(modifier: Modifier = Modifier, onBackPress: () -> Unit = {}) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 20.dp, horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-
-        AppbarButton(
-            icon = Icons.Default.ArrowBack,
-            onClick = onBackPress,
-            contentDescription = stringResource(R.string.back_button)
-        )
-
-        Text(text = stringResource(R.string.details), style = MaterialTheme.typography.body1)
-
-
-        AppbarButton(
-            icon = Icons.Default.MoreVert,
-            contentDescription = stringResource(R.string.more_button)
-        )
-    }
-}
 
 @Preview
 @Composable
@@ -180,11 +168,12 @@ fun BookDetails(
     downloadStatus: DownloadStatus = DownloadStatus.NotDownloading,
     downloadProgress: Float = 0f,
     onDownloadClick: (BookWithExtras) -> Unit = {},
-    onStartReadingClick: (BookWithExtras) -> Unit = {},
     onCancelDownload: (BookWithExtras) -> Unit = {}
 ) {
     Log.d(TAG, "BookDetails: $book")
-
+    val isDownloadProgressVisible =
+        downloadStatus is DownloadStatus.Pending || downloadStatus is DownloadStatus.Running || downloadStatus is DownloadStatus.Paused
+    val isDownloadSuccessIndicatorVisible = downloadStatus is DownloadStatus.Successful
 
     Column(
         modifier = modifier
@@ -195,7 +184,6 @@ fun BookDetails(
     ) {
 
         Spacer(modifier = Modifier.height(24.dp))
-        //260 -> 320 , 180 -> 220
         BookCover(
             modifier = Modifier.size(
                 height = if (book.description.isNotEmpty()) 260.dp else 320.dp,
@@ -231,27 +219,31 @@ fun BookDetails(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (book.fileUri == null && book.downloadId != null) {
+        if (isDownloadProgressVisible)
             DownloadProgressIndicator(
                 downloadStatus = downloadStatus,
                 downloadProgress = downloadProgress
             )
-        } else {
-            Spacer(modifier = Modifier.height(2.dp))
-        }
+        else
+            Spacer(modifier = Modifier.height(4.dp))
+        
 
 
-        Spacer(modifier = Modifier.height(18.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
-        StartReadingButton(
+        DownloadButton(
             modifier = Modifier.padding(horizontal = 16.dp),
             book = book,
             onDownloadClick = onDownloadClick,
-            onStartReadingClick = onStartReadingClick,
             onCancelDownloadClick = onCancelDownload
         )
 
-        Spacer(modifier = Modifier.height(18.dp))
+        Spacer(Modifier.height(2.dp))
+
+        if (isDownloadSuccessIndicatorVisible)
+            DownloadSuccessIndicator()
+        else
+            Spacer(Modifier.height(20.dp))
 
 
         if (!book.description.isNullOrBlank()) {
@@ -283,7 +275,7 @@ fun DownloadProgressIndicator(
     val color = MaterialTheme.colors.secondary
     val strokeCap = StrokeCap.Round
 
-    if (downloadStatus == DownloadStatus.NotDownloading || downloadStatus == DownloadStatus.Pending)
+    if (downloadStatus == DownloadStatus.Pending)
         LinearProgressIndicator(
             modifier = localModifier,
             color = color,
@@ -298,25 +290,41 @@ fun DownloadProgressIndicator(
         )
 }
 
+@Preview
+@Composable
+fun DownloadProgressIndicatorPreview() {
+    Row(Modifier.background(color = Color.Red)) {
+        DownloadProgressIndicator(
+            modifier = Modifier.weight(1f),
+            downloadStatus = DownloadStatus.Pending,
+            downloadProgress = 0f
+        )
+        Box(
+            modifier = Modifier
+                .size(4.dp)
+                .background(Color.Black)
+                .weight(1f)
+        )
+    }
+}
+
 
 @Composable
-fun StartReadingButton(
+fun DownloadButton(
     modifier: Modifier = Modifier,
     book: BookWithExtras,
-    onStartReadingClick: (BookWithExtras) -> Unit = {},
     onDownloadClick: (BookWithExtras) -> Unit = {},
     onCancelDownloadClick: (BookWithExtras) -> Unit = {}
 ) {
-    val buttonTextId = when {
-        book.downloadId == null && book.fileUri == null -> R.string.download
-        book.fileUri == null -> R.string.cancel
-        else -> R.string.start_reading
+    val buttonLabelId = when (book.downloadId) {
+        null -> R.string.download
+        else -> R.string.cancel
     }
     val onClick: () -> Unit = {
-        when {
-            book.downloadId == null && book.fileUri == null -> onDownloadClick(book)
-            book.fileUri == null -> onCancelDownloadClick(book)
-            else -> onStartReadingClick(book)
+        Log.d(TAG, "StartReadingButton: fileUri:${book.fileUri}, downloadId:${book.downloadId}")
+        when (book.downloadId) {
+            null -> onDownloadClick(book)
+            else -> onCancelDownloadClick(book)
         }
     }
 
@@ -327,14 +335,41 @@ fun StartReadingButton(
         ), onClick = onClick,
         shape = RoundedCornerShape(12.dp)
     ) {
-        Text(text = stringResource(buttonTextId), style = MaterialTheme.typography.body1)
+        Text(text = stringResource(buttonLabelId), style = MaterialTheme.typography.body1)
     }
 }
 
 @Preview
 @Composable
-private fun StartReadingButtonPreview() {
-    StartReadingButton(book = DEFAULT_BOOK_WITH_EXTRAS)
+private fun DownloadButtonPreview() {
+    DownloadButton(book = DEFAULT_BOOK_WITH_EXTRAS)
+}
+
+@Composable
+fun DownloadSuccessIndicator(modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start
+    ) {
+        Text(
+            text = stringResource(R.string.download_successfully),
+            style = MaterialTheme.typography.caption,
+        )
+        Spacer(modifier = Modifier.padding(horizontal = 4.dp))
+        Icon(
+            modifier = Modifier.size(16.dp),
+            imageVector = Icons.Default.Check,
+            contentDescription = stringResource(R.string.check_icon),
+            tint = Color.Green
+        )
+    }
+}
+
+@Preview
+@Composable
+fun DownloadSuccessIndicatorPreview() {
+    DownloadSuccessIndicator()
 }
 
 @Preview
@@ -350,33 +385,6 @@ fun BookDetailsPreview() {
     }
 }
 
-@Composable
-fun AppbarButton(
-    modifier: Modifier = Modifier,
-    icon: ImageVector,
-    onClick: () -> Unit = {},
-    contentDescription: String
-) {
-    IconButton(
-        modifier = modifier
-            .clip(CircleShape),
-        onClick = onClick
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-        )
-    }
-}
-
-
-@Preview
-@Composable
-fun CircularButtonPreview() {
-    GuttenburgTheme() {
-        AppbarButton(icon = Icons.Default.ArrowBack, contentDescription = "")
-    }
-}
 
 @Composable
 fun BookInfo(modifier: Modifier = Modifier, book: BookWithExtras) {
@@ -437,6 +445,10 @@ fun InfoCell(modifier: Modifier = Modifier, text: String, icon: ImageVector) {
 fun InfoCellPreview() {
     InfoCell(text = "14", icon = Icons.Default.Star)
 }
+
+
+
+
 
 
 

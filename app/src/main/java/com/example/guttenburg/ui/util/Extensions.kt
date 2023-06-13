@@ -2,7 +2,7 @@ package com.example.guttenburg.ui.util
 
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
-import com.example.guttenburg.data.repository.Book
+import com.example.guttenburg.data.repository.model.Book
 
 
 fun LazyPagingItems<Book>.isRefreshSuccess() = loadState.source.refresh is LoadState.NotLoading

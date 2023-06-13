@@ -1,8 +1,9 @@
 package com.example.guttenburg.data.repository
 
 import androidx.paging.PagingData
+import com.example.guttenburg.data.repository.model.Book
+import com.example.guttenburg.data.repository.model.BookWithExtras
 import com.example.guttenburg.download.DownloadStatus
-import com.example.guttenburg.reader.models.EpubBook
 import kotlinx.coroutines.flow.Flow
 
 
@@ -33,5 +34,4 @@ interface BooksRepository {
 
     fun cancelDownload(downloadId: Long)
 
-    fun loadEbook(bookId: Long): Flow<EpubBook>
 }
