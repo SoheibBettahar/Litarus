@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 
 
 interface Downloader {
-    fun downloadFile(url: String, title: String, description: String): Long
+    fun downloadFile(url: String, title: String, description: String, extension: String): Long
 
     fun cancelDownload(downloadId: Long)
 

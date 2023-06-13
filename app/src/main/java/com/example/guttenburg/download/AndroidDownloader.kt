@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Environment
 import android.util.Log
 import android.webkit.MimeTypeMap
+import androidx.compose.ui.text.toLowerCase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.awaitClose
@@ -17,7 +18,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.scan
 import java.io.File
-import java.lang.Long.max
 import java.lang.Long.min
 import javax.inject.Inject
 
@@ -28,20 +28,22 @@ class AndroidDownloader @Inject constructor(@ApplicationContext val context: Con
     private val downloadManager: DownloadManager by lazy { context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager }
 
     override fun downloadFile(
-        url: String,
+        downloadUrl: String,
         title: String,
         description: String,
+        extension: String
     ): Long {
-        val fileUri = Uri.parse(url)
-        val request = Request(fileUri).apply {
-            setMimeType(parseMimeType(url))
+        val downloadUri = Uri.parse(downloadUrl)
+        Log.d(TAG, "downloadFile: uri: $downloadUri")
+        val request = Request(downloadUri).apply {
             setTitle(title)
             setDescription(description)
             setNotificationVisibility(Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
             setAllowedOverMetered(true)
             setAllowedOverRoaming(true)
-            setDestinationInExternalFilesDir(
-                context, Environment.DIRECTORY_DOWNLOADS, formattedFileName(title)
+            setDestinationInExternalPublicDir(
+                Environment.DIRECTORY_DOWNLOADS,
+                formattedFileName(title, extension)
             )
         }
 
@@ -63,11 +65,15 @@ class AndroidDownloader @Inject constructor(@ApplicationContext val context: Con
         val ext = MimeTypeMap.getFileExtensionFromUrl(file.name)
         var type = map.getMimeTypeFromExtension(ext)
         type = type ?: "*/*"
+
+        Log.d(TAG, "parseMimeType: $type")
         return type
     }
 
-    private fun formattedFileName(fileName: String): String =
-        fileName.replace(Regex("[,:;. ]+"), "_")
+    private fun formattedFileName(fileName: String, extension: String): String =
+        fileName.trim()
+            .lowercase()
+            .replace(Regex("[,:;.'_#` ]+"), "-") + extension
 
     private fun isExternalStorageWritable(): Boolean {
         return Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED
@@ -142,7 +148,6 @@ class AndroidDownloader @Inject constructor(@ApplicationContext val context: Con
     }
 
 
-
     @SuppressLint("Range")
     private fun computeDownloadStatus(downloadId: Long): Flow<DownloadStatus> = callbackFlow {
         var cursor: Cursor? = null
@@ -154,7 +159,10 @@ class AndroidDownloader @Inject constructor(@ApplicationContext val context: Con
             val status = if (cursor.moveToFirst())
                 when (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))) {
                     DownloadManager.STATUS_RUNNING -> DownloadStatus.Running
-                    DownloadManager.STATUS_PAUSED -> DownloadStatus.Paused
+                    DownloadManager.STATUS_PAUSED -> {
+                        val pauseReason = computePauseReason(cursor)
+                        DownloadStatus.Paused(pauseReason)
+                    }
                     DownloadManager.STATUS_SUCCESSFUL -> DownloadStatus.Successful
                     DownloadManager.STATUS_FAILED -> {
                         val error = computeDownloadError(cursor)
@@ -201,6 +209,16 @@ class AndroidDownloader @Inject constructor(@ApplicationContext val context: Con
             DownloadManager.ERROR_INSUFFICIENT_SPACE, DownloadManager.ERROR_DEVICE_NOT_FOUND -> DownloadError.InsufficientSpaceError
             DownloadManager.ERROR_HTTP_DATA_ERROR, DownloadManager.ERROR_UNHANDLED_HTTP_CODE, DownloadManager.ERROR_TOO_MANY_REDIRECTS -> DownloadError.HttpError
             else -> DownloadError.UnknownError
+        }
+    }
+
+    @SuppressLint("Range")
+    private fun computePauseReason(cursor: Cursor): PauseReason {
+        return when (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_REASON))) {
+            DownloadManager.PAUSED_WAITING_TO_RETRY -> PauseReason.WaitingToRetry
+            DownloadManager.PAUSED_QUEUED_FOR_WIFI -> PauseReason.QueuedForWifi
+            DownloadManager.PAUSED_WAITING_FOR_NETWORK -> PauseReason.WaitingForNetwork
+            else -> PauseReason.Unknown
         }
     }
 
