@@ -11,12 +11,12 @@ data class BookWithExtras(
     val fileExtension: String,
     val imageUrl: String,
     val downloadCount: Int? = null,
-    val language: String? = null,
+    val languages: String? = null,
     val authors: String = "",
     val downloadId: Long?,
     val fileUri: Uri?
 ) {
-    fun areInfoAvailable() = authors.isNotBlank() || downloadCount != null || language != null
+    fun areInfoAvailable() = authors.isNotBlank() || downloadCount != null || languages != null
 
 
 }

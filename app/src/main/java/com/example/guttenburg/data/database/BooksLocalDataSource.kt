@@ -9,9 +9,10 @@ import kotlinx.coroutines.flow.Flow
 interface BooksLocalDataSource {
 
 
-    fun booksByNameOrAuthorAndCategory(
+    fun booksByNameOrAuthorAndCategoryAndLanguages(
         searchText: String,
-        category: String
+        category: String,
+        languages: String
     ): PagingSource<Int, DatabaseBook>
 
     fun getAllBooks(): PagingSource<Int, DatabaseBook>

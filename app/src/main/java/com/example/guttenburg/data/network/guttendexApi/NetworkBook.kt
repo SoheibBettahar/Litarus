@@ -20,7 +20,6 @@ data class NetworkBook(
 )
 
 
-
 fun NetworkBook.asDatabaseModel(page: Int): DatabaseBook {
 
     return DatabaseBook(
@@ -29,6 +28,7 @@ fun NetworkBook.asDatabaseModel(page: Int): DatabaseBook {
         authors = authors.mapNotNull { it.name }.joinToString(separator = "#"),
         imageUrl = formats?.imageJpeg ?: "",
         subjects = getSubjectsText(subjects),
+        languages = languages.joinToString(","),
         page = page,
     )
 }

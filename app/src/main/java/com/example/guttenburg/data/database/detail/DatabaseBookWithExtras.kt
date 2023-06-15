@@ -19,7 +19,7 @@ data class DatabaseBookWithExtras(
     val htmlPreviewLink: String?,
     val imageUrl: String,
     val downloadCount: Int? = null,
-    val language: String? = null,
+    val languages: String? = null,
     val authors: String = "",
     val downloadId: Long? = null,
     val fileUriString: String? = null
@@ -27,8 +27,6 @@ data class DatabaseBookWithExtras(
 
     companion object {
         fun from(book: NetworkBook, extras: NetworkGoogleBookInfo?): DatabaseBookWithExtras {
-            val downloadUrl = book.formats?.applicationEpubZip ?: book.formats?.applicationPdf
-            val fileExtension = book.formats?.applicationEpubZip?.let { ".epub" } ?: ".pdf"
 
             return DatabaseBookWithExtras(
                 book.id,
@@ -37,17 +35,17 @@ data class DatabaseBookWithExtras(
                 extras?.pageCount,
                 imageUrl = book.formats?.imageJpeg ?: "",
                 downloadUrl = book.formats?.applicationEpubZip ?: book.formats?.applicationPdf,
-                fileExtension = fileExtension,
+                fileExtension = book.formats?.applicationEpubZip?.let { ".epub" } ?: ".pdf",
                 htmlPreviewLink = book.formats?.textHtml,
                 downloadCount = book.downloadCount,
-                language = book.languages.firstOrNull().displayName(),
+                languages = book.languages.map { it.displayName() }.joinToString(separator = ", "),
                 authors = book.authors.map { it.name }.joinToString(separator = ", ")
             )
         }
 
 
-        private fun String?.displayName(): String? {
-            return this?.let { Locale(this).displayName }
+        private fun String.displayName(): String? {
+            return Locale(this).displayName
         }
     }
 }
@@ -61,7 +59,7 @@ fun DatabaseBookWithExtras.asExternalModel(): BookWithExtras = BookWithExtras(
     downloadUrl = downloadUrl,
     downloadCount = downloadCount,
     fileExtension = fileExtension,
-    language = language,
+    languages = languages,
     authors = authors,
     fileUri = fileUriString?.toUri(),
     downloadId = downloadId

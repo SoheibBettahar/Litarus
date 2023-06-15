@@ -12,6 +12,7 @@ data class DatabaseBook(
     val authors: String,
     val imageUrl: String,
     val subjects: String,
+    val languages: String,
     val page: Int,
 )
 

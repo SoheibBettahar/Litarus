@@ -33,7 +33,7 @@ class BooksRepositoryImpl @Inject constructor(
 ) : BooksRepository {
 
     companion object {
-        private const val NETWORK_BOOKS_PAGE_SIZE = 10
+        private const val NETWORK_BOOKS_PAGE_SIZE = 30
     }
 
 
@@ -48,16 +48,18 @@ class BooksRepositoryImpl @Inject constructor(
                 enablePlaceholders = false
             ),
             remoteMediator = GetAllBooksRemoteMediator(remoteDataSource, booksLocalDataSource),
-            pagingSourceFactory = pagingSourceFactory
+            pagingSourceFactory = pagingSourceFactory,
+
         ).flow
             .map { pagingData -> pagingData.map(DatabaseBook::asExternalModel) }
             .flowOn(dispatcherIO)
     }
 
     @OptIn(ExperimentalPagingApi::class)
-    override fun searchBooks(category: String, searchText: String): Flow<PagingData<Book>> {
+    override fun searchBooks(category: String, searchText: String, languages: List<String>): Flow<PagingData<Book>> {
+        val formattedLanguages = languages.joinToString(separator = ",")
         val pagingSourceFactory =
-            { booksLocalDataSource.booksByNameOrAuthorAndCategory(searchText, category) }
+            { booksLocalDataSource.booksByNameOrAuthorAndCategoryAndLanguages(searchText, category, formattedLanguages) }
 
 
         return Pager(
@@ -68,6 +70,7 @@ class BooksRepositoryImpl @Inject constructor(
             remoteMediator = SearchBooksRemoteMediator(
                 searchText,
                 category,
+                formattedLanguages,
                 remoteDataSource,
                 booksLocalDataSource
             ),
@@ -77,7 +80,7 @@ class BooksRepositoryImpl @Inject constructor(
             .flowOn(dispatcherIO)
     }
 
-    override suspend fun fetchBookWithExtras(id: Long, title: String, author: String) {
+    override suspend fun fetchBookWithExtras(id: Long, title: String, author: String) =
         withContext(dispatcherIO) {
             coroutineScope {
                 val book = async { remoteDataSource.getBook(id) }
@@ -88,15 +91,21 @@ class BooksRepositoryImpl @Inject constructor(
                     ).items.firstOrNull()?.bookInfo
                 }
 
+                val bookPlaceHolder = book.await()
+                val bookWithExtrasPlaceHolder = bookExtras.await()
+
+                Log.d(TAG, "fetchBookWithExtras: book = $bookPlaceHolder")
+                Log.d(TAG, "fetchBookWithExtras: bookWithExtras = $bookWithExtrasPlaceHolder")
+
                 val databaseBookWithExtras =
-                    DatabaseBookWithExtras.from(book.await(), bookExtras.await())
+                    DatabaseBookWithExtras.from(bookPlaceHolder, bookWithExtrasPlaceHolder)
                 booksLocalDataSource.insertBookWithExtras(databaseBookWithExtras)
             }
         }
-    }
 
 
     override fun getBookWithExtras(id: Long) = booksLocalDataSource.getBookWithExtras(id)
+
         .map(DatabaseBookWithExtras::asExternalModel)
         .flowOn(dispatcherIO)
 
