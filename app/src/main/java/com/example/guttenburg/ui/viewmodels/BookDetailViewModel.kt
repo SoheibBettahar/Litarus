@@ -8,7 +8,9 @@ import com.example.guttenburg.data.Result
 import com.example.guttenburg.data.repository.model.BookWithExtras
 import com.example.guttenburg.data.repository.BooksRepository
 import com.example.guttenburg.download.DownloadStatus
+import com.example.guttenburg.util.NetworkMonitor
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -16,41 +18,70 @@ import javax.inject.Inject
 
 private const val TAG = "BookDetailViewModel"
 
+data class BookDetailUiState(
+    val loadResult: Result<BookWithExtras> = Result.Loading,
+)
+
+data class DownloadState(
+    val status: DownloadStatus = DownloadStatus.NotDownloading,
+    val progress: Float = 0f
+)
+
+
 @HiltViewModel
 class BookDetailViewModel @Inject constructor(
     private val booksRepository: BooksRepository,
+    networkMonitor: NetworkMonitor,
     savedStateHandle: SavedStateHandle
 ) :
     ViewModel() {
 
-    private val id: Long = savedStateHandle["id"] ?: -1
+    val id: Long = savedStateHandle["id"] ?: -1
     private val title: String = savedStateHandle["title"] ?: ""
     private val author: String = savedStateHandle["author"] ?: ""
 
+    private val _bookUiState = MutableStateFlow(BookDetailUiState())
+    val bookUiState: StateFlow<BookDetailUiState>
+        get() = _bookUiState
 
-    private val _book: MutableStateFlow<Result<BookWithExtras>> = MutableStateFlow(Result.Loading)
-    val book: StateFlow<Result<BookWithExtras>>
-        get() = _book
 
+    val downloadState: StateFlow<DownloadState> = downloadUiState().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = DownloadState()
+    )
 
-    private val downloadId = book
-        .filter { it is Result.Success<BookWithExtras> }
-        .map { (it as Result.Success).data.downloadId }
-        .distinctUntilChanged()
-
-    val downloadProgress = downloadId.filterNotNull()
-        .flatMapLatest { booksRepository.getDownloadProgress(it) }
-        .distinctUntilChanged()
-
-    val downloadStatus = downloadId.filterNotNull()
-        .flatMapLatest { booksRepository.getDownloadStatus(it) }
-        .onEach { Log.d(TAG, "downloadStatus: $it") }
-        .onEach { if (it is DownloadStatus.Paused) Log.d(TAG, "Paused Reason: ${it.reason}") }
-        .distinctUntilChanged()
+    val isOnline = networkMonitor.isOnline.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = false
+    )
 
 
     init {
         getBook()
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun downloadUiState(): Flow<DownloadState> {
+        val downloadId = bookUiState.map { it.loadResult }
+            .filter { it is Result.Success<BookWithExtras> }
+            .map { (it as Result.Success).data.downloadId }
+            .distinctUntilChanged()
+
+        val downloadProgress = downloadId.filterNotNull()
+            .flatMapLatest { booksRepository.getDownloadProgress(it) }
+            .distinctUntilChanged()
+
+        val downloadStatus = downloadId.filterNotNull()
+            .flatMapLatest { booksRepository.getDownloadStatus(it) }
+            .onEach { Log.d(TAG, "downloadStatus: $it") }
+            .distinctUntilChanged()
+
+
+        return downloadStatus.combine(downloadProgress) { status, progress ->
+            DownloadState(status, progress)
+        }
     }
 
     fun getBook() {
@@ -58,15 +89,19 @@ class BookDetailViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 if (!booksRepository.containsBookWithExtras(id)) {
-                    _book.value = Result.Loading
+                    _bookUiState.value = BookDetailUiState(Result.Loading)
                     booksRepository.fetchBookWithExtras(id, title, author)
                 }
+
                 booksRepository.getBookWithExtras(id)
                     .map { Result.Success(it) }
-                    .onEach { _book.value = it }
+                    .onEach {
+                        _bookUiState.value = BookDetailUiState(it)
+                    }
                     .collect()
+
             } catch (exception: Exception) {
-                _book.value = Result.Error(exception)
+                _bookUiState.value = BookDetailUiState(Result.Error(exception))
             }
         }
 
@@ -87,4 +122,5 @@ class BookDetailViewModel @Inject constructor(
 
         }
     }
+
 }
