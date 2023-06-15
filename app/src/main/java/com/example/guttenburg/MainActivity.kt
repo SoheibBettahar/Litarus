@@ -1,9 +1,9 @@
 package com.example.guttenburg
 
 import android.app.DownloadManager
+import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -33,6 +34,7 @@ import com.example.guttenburg.ui.screens.DetailScreen
 import com.example.guttenburg.ui.screens.ListScreen
 import com.example.guttenburg.ui.screens.TrainingScreen
 import com.example.guttenburg.ui.theme.GuttenburgTheme
+import com.example.guttenburg.util.GUTTENBURG_URL
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -121,10 +123,10 @@ class MainActivity : ComponentActivity() {
             composable(Training.route) { TrainingScreen() }
 
             composable(BooksList.route) {
-                ListScreen { id, title, author ->
+                ListScreen(onBookItemClick = { id, title, author ->
                     val route = "${BookDetail.route}/$id/$title?author={$author}"
                     navController.navigateSingleTopTo(route)
-                }
+                }, onShowSnackbar = onShowSnackBar)
             }
 
             composable(
@@ -133,9 +135,22 @@ class MainActivity : ComponentActivity() {
                     navArgument("title") { type = NavType.StringType },
                     navArgument("author") { type = NavType.StringType; nullable = true })
             ) {
+                val context = LocalContext.current
                 DetailScreen(
                     onBackPress = { navController.navigateUp() },
-                    onShowSnackbar = onShowSnackBar
+                    onShowSnackbar = onShowSnackBar,
+                    onSharePress = { id ->
+                        val intent = Intent(Intent.ACTION_SEND)
+                        intent.type = "text/plain"
+                        intent.putExtra(
+                            Intent.EXTRA_TEXT, "$GUTTENBURG_URL${id}"
+                        )
+                        val chooser = Intent.createChooser(
+                            intent, context.getString(com.example.guttenburg.R.string.share_book)
+                        )
+                        context.startActivity(chooser)
+
+                    }
                 )
             }
         }

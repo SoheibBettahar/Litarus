@@ -11,7 +11,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,14 +24,19 @@ import com.example.guttenburg.R
 import com.example.guttenburg.ui.theme.GuttenburgTheme
 
 @Composable
-fun AppBar(modifier: Modifier = Modifier, title: String = "Title", onBackPress: () -> Unit = {}) {
+fun AppBar(
+    modifier: Modifier = Modifier,
+    title: String = "Title",
+    onBackPress: () -> Unit = {},
+    onSharePress: () -> Unit = {}
+) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(
                 vertical = 20.dp,
-                horizontal = 16.dp)
-        ,
+                horizontal = 16.dp
+            ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -46,8 +51,9 @@ fun AppBar(modifier: Modifier = Modifier, title: String = "Title", onBackPress: 
 
 
         AppbarButton(
-            icon = Icons.Default.MoreVert,
-            contentDescription = stringResource(R.string.more_button)
+            icon = Icons.Default.Share,
+            contentDescription = stringResource(R.string.more_button),
+            onClick = onSharePress
         )
     }
 }
@@ -71,7 +77,6 @@ fun AppbarButton(
         )
     }
 }
-
 
 
 @Preview
