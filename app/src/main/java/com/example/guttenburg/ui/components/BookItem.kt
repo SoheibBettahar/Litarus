@@ -12,15 +12,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.guttenburg.data.repository.model.Book
+import com.example.guttenburg.util.DEFAULT_BOOK
 
 private const val TAG = "BookItem"
 
-private val DEFAULT_BOOK = Book(
-    id = 0,
-    title = "Moby Dick",
-    authors = listOf("Herman Meville"),
-    imageUrl = "https://www.gutenberg.org/cache/epub/2641/pg2641.cover.medium.jpg"
-)
+
 
 @Composable
 fun BookItem(
