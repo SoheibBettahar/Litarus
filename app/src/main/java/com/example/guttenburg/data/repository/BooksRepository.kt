@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 
 
 interface BooksRepository {
-    fun searchBooks(category: String, searchText: String, languages: List<String>): Flow<PagingData<Book>>
+    fun searchBooks(searchText: String, category: String, languages: List<String>): Flow<PagingData<Book>>
 
     fun getBooks(): Flow<PagingData<Book>>
 

@@ -56,7 +56,7 @@ class BooksRepositoryImpl @Inject constructor(
     }
 
     @OptIn(ExperimentalPagingApi::class)
-    override fun searchBooks(category: String, searchText: String, languages: List<String>): Flow<PagingData<Book>> {
+    override fun searchBooks( searchText: String, category: String, languages: List<String>): Flow<PagingData<Book>> {
         val formattedLanguages = languages.joinToString(separator = ",")
         val pagingSourceFactory =
             { booksLocalDataSource.booksByNameOrAuthorAndCategoryAndLanguages(searchText, category, formattedLanguages) }

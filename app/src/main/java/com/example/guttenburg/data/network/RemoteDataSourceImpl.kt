@@ -14,14 +14,14 @@ class RemoteDataSourceImpl(
 
     override suspend fun searchBooks(
         page: Int,
-        category: String,
         searchText: String,
+        category: String,
         languages: String
     ): NetworkBooksPage {
         val queryMap = mutableMapOf("page" to "$page")
 
+        if (searchText.isNotEmpty()) queryMap["search"] = searchText
         if (category.isNotEmpty()) queryMap["topic"] = category
-        if (languages.isNotEmpty()) queryMap["search"] = searchText
         if (languages.isNotEmpty()) queryMap["languages"] = languages
 
         return booksService.searchBooks(queryMap)

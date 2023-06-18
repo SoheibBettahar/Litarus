@@ -6,7 +6,7 @@ import com.example.guttenburg.data.network.guttendexApi.NetworkBooksPage
 
 interface RemoteDataSource {
 
-    suspend fun searchBooks(page: Int, category: String, searchText: String, languages: String): NetworkBooksPage
+    suspend fun searchBooks(page: Int, searchText: String, category: String, languages: String): NetworkBooksPage
     suspend fun getBooks(page: Int): NetworkBooksPage
     suspend fun getBook(id: Long): NetworkBook
     suspend fun getBookExtras(title: String, author: String): NetworkGoogleBookPage

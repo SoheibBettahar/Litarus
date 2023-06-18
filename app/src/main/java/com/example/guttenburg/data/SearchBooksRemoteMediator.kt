@@ -61,7 +61,7 @@ class SearchBooksRemoteMediator(
         Log.d(TAG, "load called(): loadType:$loadType, page: $page")
 
         return try {
-            val response = bookRemoteDataSource.searchBooks(page, category, searchText, languages)
+            val response = bookRemoteDataSource.searchBooks(page, searchText, category, languages)
             val networkBooks = response.results
 
             val endOfPaginationReached = networkBooks.isEmpty()

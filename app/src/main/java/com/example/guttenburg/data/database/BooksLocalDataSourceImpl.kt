@@ -1,13 +1,12 @@
 package com.example.guttenburg.data.database
 
+import android.util.Log
 import androidx.paging.PagingSource
 import androidx.room.withTransaction
-import androidx.sqlite.db.SimpleSQLiteQuery
 import com.example.guttenburg.data.database.detail.DatabaseBookWithExtras
 import com.example.guttenburg.data.database.paging.DatabaseBook
 import com.example.guttenburg.data.database.paging.RemoteKeys
 import kotlinx.coroutines.flow.Flow
-import java.net.URLEncoder
 import javax.inject.Inject
 
 private const val TAG = "BooksLocalDataSourceImp"
@@ -20,15 +19,16 @@ class BooksLocalDataSourceImpl @Inject constructor(private val database: Guttenb
     ): PagingSource<Int, DatabaseBook> {
         val searchTextString = "%${searchText.replace(' ', '%')}%"
         val categoryString = "%${category.replace(' ', '%')}%"
-
+        val languagesString = "%${languages.replace(' ', '%')}%"
+        Log.d(TAG, "booksByNameOrAuthorAndCategoryAndLanguages: $searchText, $category, $languages")
         return when {
             searchText.isNotBlank() && category.isNotBlank() && languages.isNotBlank() -> database.bookDao().getBySearchAndCategoryAndLanguages(searchTextString, categoryString, languages)
             searchText.isNotBlank() && category.isNotBlank() -> database.bookDao().getBySearchAndCategory(searchTextString, categoryString)
-            searchText.isNotBlank() && languages.isNotBlank() -> database.bookDao().getBySearchAndLanguages(searchTextString, languages)
-            category.isNotBlank() && languages.isNotBlank() -> database.bookDao().getByCategoryAndLanguages(categoryString, languages)
+            searchText.isNotBlank() && languages.isNotBlank() -> database.bookDao().getBySearchAndLanguages(searchTextString, languagesString)
+            category.isNotBlank() && languages.isNotBlank() -> database.bookDao().getByCategoryAndLanguages(categoryString, languagesString)
             searchText.isNotBlank() -> database.bookDao().getBySearch(searchTextString)
             category.isNotBlank() -> database.bookDao().getByCategory(categoryString)
-            languages.isNotBlank() -> database.bookDao().getByLanguages(languages)
+            languages.isNotBlank() -> database.bookDao().getByLanguages(languagesString)
             else -> getAllBooks()
         }
     }
