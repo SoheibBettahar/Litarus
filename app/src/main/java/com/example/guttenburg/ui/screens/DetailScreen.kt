@@ -85,22 +85,26 @@ fun DetailScreen(
     onBackPress: () -> Unit = {},
     onShowSnackbar: (String) -> Unit = {}
 ) {
-    val book = viewModel.book.collectAsState()
-    val result = book.value
-    val downloadStatus =
-        viewModel.downloadStatus.collectAsStateWithLifecycle(initialValue = DownloadStatus.NotDownloading)
-    val downloadProgress = viewModel.downloadProgress.collectAsStateWithLifecycle(initialValue = 0f)
+    val book: BookDetailUiState by viewModel.bookUiState.collectAsState()
+    val loadResult = book.loadResult
+    val downloadState: DownloadState by viewModel.downloadState.collectAsStateWithLifecycle()
+    val bookId = viewModel.id
+    val isOnline: Boolean by viewModel.isOnline.collectAsStateWithLifecycle()
 
-    LaunchedEffect(key1 = downloadStatus.value) {
-        val downloadState = downloadStatus.value
+    val downloadSuccess = stringResource(R.string.check_mark_download_success)
+    val insufficientSpace = stringResource(R.string.close_mark_insufficient_space)
+    val internetUnavailable = stringResource(R.string.warning_mark_internet_unavailable)
+    val unknownError = stringResource(R.string.close_mark_unknown_error)
 
-        if (downloadState is DownloadStatus.Successful || downloadState is DownloadStatus.Failed) {
+    LaunchedEffect(key1 = downloadState.status) {
+        val downloadStatus = downloadState.status
+        if (downloadStatus is DownloadStatus.Successful || downloadStatus is DownloadStatus.Failed) {
             val message =
-                if (downloadState is DownloadStatus.Successful) "Download Completed Successfully"
-                else when ((downloadState as DownloadStatus.Failed).error) {
-                    DownloadError.InsufficientSpaceError -> "Insufficient Space"
-                    DownloadError.HttpError -> "Internet Unavailable"
-                    DownloadError.UnknownError -> "An Error Happened"
+                if (downloadStatus is DownloadStatus.Successful) downloadSuccess
+                else when ((downloadStatus as DownloadStatus.Failed).error) {
+                    DownloadError.InsufficientSpaceError -> insufficientSpace
+                    DownloadError.HttpError -> internetUnavailable
+                    DownloadError.UnknownError -> unknownError
                 }
 
             onShowSnackbar(message)
@@ -120,19 +124,22 @@ fun DetailScreen(
 
         Box(modifier = Modifier.fillMaxSize()) {
 
-            if (result is Result.Success) {
+            if (loadResult is Result.Success) {
                 BookDetails(
                     modifier = Modifier.fillMaxSize(),
-                    book = result.data,
-                    downloadStatus = downloadStatus.value,
-                    downloadProgress = downloadProgress.value,
-                    onDownloadClick = viewModel::downloadBook,
+                    book = loadResult.data,
+                    downloadStatus = downloadState.status,
+                    downloadProgress = downloadState.progress,
+                    onDownloadClick = {
+                        if (isOnline) viewModel.downloadBook(it)
+                        else onShowSnackbar(internetUnavailable)
+                    },
                     onCancelDownload = viewModel::cancelDownload
                 )
             }
 
 
-            if (result is Result.Loading) {
+            if (loadResult is Result.Loading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(
                         Alignment.Center
@@ -140,10 +147,10 @@ fun DetailScreen(
                 )
             }
 
-            if (result is Result.Error)
+            if (loadResult is Result.Error)
                 ErrorLayout(
                     modifier = Modifier.align(Alignment.Center),
-                    error = result.exception,
+                    error = loadResult.exception,
                     onRetryClick = { viewModel.getBook() }
                 )
         }
