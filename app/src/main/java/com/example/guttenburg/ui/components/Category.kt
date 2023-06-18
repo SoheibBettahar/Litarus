@@ -9,27 +9,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 
-val DEFAULT_CATEGORIES = mapOf(
-    "All" to "",
-    "Adventure" to "Adventure",
-    "Biography" to "Biography",
-    "Children" to "Children",
-    "Detective" to "Detective",
-    "Drama" to "Drama",
-    "Fantasy" to "Fantasy",
-    "Fiction" to "Fiction",
-    "History" to "History",
-    "Horror" to "Horror",
-    "Humor" to "Humor",
-    "Literature" to "Literature",
-    "Mystery" to "Mystery",
-    "Romance" to "Romance",
-    "Science" to "Science",
-    "Thriller" to "Thriller",
-    "Poetry" to "Poetry",
-)
-
-
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun Category(
