@@ -1,8 +1,8 @@
 package com.example.guttenburg.ui.screens
 
 import android.util.Log
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.getValue
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -10,9 +10,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,55 +33,19 @@ import com.example.guttenburg.ui.components.BookCover
 import com.example.guttenburg.ui.components.ErrorLayout
 import com.example.guttenburg.ui.theme.GuttenburgTheme
 import com.example.guttenburg.ui.util.withFadingEdgeEffect
+import com.example.guttenburg.ui.viewmodels.BookDetailUiState
 import com.example.guttenburg.ui.viewmodels.BookDetailViewModel
+import com.example.guttenburg.ui.viewmodels.DownloadState
+import com.example.guttenburg.util.DEFAULT_BOOK_WITH_EXTRAS
 
 private const val TAG = "DetailScreen"
-
-private val DEFAULT_BOOK_WITH_EXTRAS = BookWithExtras(
-    id = 145,
-    title = "Middlemarch",
-    description = "This is an analysis of the life of an English provincial town during the" +
-            " time of social unrest prior to the first Reform Bill of 1832. It is told through" +
-            " the lives of Dorothea Brooke and Dr Tertius Lydgate and includes a host of characters" +
-            " who illuminate the condition of English life in the mid 19th century. This is an " +
-            "analysis of the life of an English provincial town during the time of social unrest" +
-            " prior to the first Reform Bill of 1832. It is told through the lives of Dorothea " +
-            "<Brooke and Dr Tertius Lydgate and includes a host of characters who illuminate the " +
-            "condition of English life in the mid 19th century. This is an analysis of the life " +
-            "of an English provincial town during the time of social unrest prior to the first " +
-            "Reform Bill of 1832. It is told through the lives of Dorothea Brooke and Dr Tertius" +
-            " Lydgate and includes a host of characters who illuminate the condition of English " +
-            "life in the mid 19th century. This is an analysis of the life of an English provincial" +
-            " town during the time of social unrest prior to the first Reform Bill of 1832. It is " +
-            "told through the lives of Dorothea Brooke and Dr Tertius Lydgate and includes a host" +
-            " of characters who illuminate the condition of English life in the mid 19th century." +
-            " This is an analysis of the life of an English provincial town during the time of " +
-            "social unrest prior to the first Reform Bill of 1832. It is told through the lives of" +
-            " Dorothea Brooke and Dr Tertius Lydgate and includes a host of characters who " +
-            "illuminate the condition of English life in the mid 19th century. This is an analysis" +
-            " of the life of an English provincial town during the time of social unrest prior to" +
-            " the first Reform Bill of 1832. It is told through the lives of Dorothea Brooke and " +
-            "Dr Tertius Lydgate and includes a host of characters who illuminate the condition of" +
-            " English life in the mid 19th century. This is an analysis of the life of an English" +
-            " provincial town during the time of social unrest prior to the first Reform Bill of " +
-            "1832. It is told through the lives of Dorothea Brooke and Dr Tertius Lydgate and includes a host of characters who illuminate the condition of English life in the mid 19th century. This is an analysis of the life of an English provincial town during the time of social unrest prior to the first Reform Bill of 1832. It is told through the lives of Dorothea Brooke and Dr Tertius Lydgate and includes a host of characters who illuminate the condition of English life in the mid 19th century. This is an analysis of the life of an English provincial town during the time of social unrest prior to the first Reform Bill of 1832. It is told through the lives of Dorothea Brooke and Dr Tertius Lydgate and includes a host of characters who illuminate the condition of English life in the mid 19th century. This is an analysis of the life of an English provincial town during the time of social unrest prior to the first Reform Bill of 1832. It is told through the lives of Dorothea Brooke and Dr Tertius Lydgate and includes a host of characters who illuminate the condition of English life in the mid 19th century. This is an analysis of the life of an English provincial town during the time of social unrest prior to the first Reform Bill of 1832. It is told through the lives of Dorothea Brooke and Dr Tertius Lydgate and includes a host of characters who illuminate the condition of English life in the mid 19th century.",
-    pageCount = 740,
-    downloadUrl = "https://www.gutenberg.org/ebooks/145.txt.utf-8",
-    fileExtension = ".epub",
-    imageUrl = "https://www.gutenberg.org/cache/epub/145/pg145.cover.medium.jpg",
-    downloadCount = 130471,
-    language = "English",
-    authors = "Eliot, George",
-    downloadId = null,
-    fileUri = null
-)
-
 
 @Composable
 fun DetailScreen(
     viewModel: BookDetailViewModel = hiltViewModel(),
     onBackPress: () -> Unit = {},
-    onShowSnackbar: (String) -> Unit = {}
+    onShowSnackbar: (String) -> Unit = {},
+    onSharePress: (Long) -> Unit = {}
 ) {
     val book: BookDetailUiState by viewModel.bookUiState.collectAsState()
     val loadResult = book.loadResult
@@ -109,8 +71,6 @@ fun DetailScreen(
 
             onShowSnackbar(message)
         }
-
-
     }
 
 
@@ -119,7 +79,8 @@ fun DetailScreen(
         AppBar(
             modifier = Modifier.fillMaxWidth(),
             title = stringResource(R.string.details),
-            onBackPress = onBackPress
+            onBackPress = onBackPress,
+            onSharePress = { onSharePress(bookId) }
         )
 
         Box(modifier = Modifier.fillMaxSize()) {
@@ -160,14 +121,6 @@ fun DetailScreen(
 }
 
 
-@Preview
-@Composable
-fun AppBarPreview() {
-    GuttenburgTheme() {
-        AppBar()
-    }
-}
-
 @Composable
 fun BookDetails(
     modifier: Modifier = Modifier,
@@ -177,7 +130,6 @@ fun BookDetails(
     onDownloadClick: (BookWithExtras) -> Unit = {},
     onCancelDownload: (BookWithExtras) -> Unit = {}
 ) {
-    Log.d(TAG, "BookDetails: $book")
     val isDownloadProgressVisible =
         downloadStatus is DownloadStatus.Pending || downloadStatus is DownloadStatus.Running || downloadStatus is DownloadStatus.Paused
     val isDownloadSuccessIndicatorVisible = downloadStatus is DownloadStatus.Successful
@@ -233,7 +185,7 @@ fun BookDetails(
             )
         else
             Spacer(modifier = Modifier.height(4.dp))
-        
+
 
 
         Spacer(modifier = Modifier.height(14.dp))
@@ -300,19 +252,11 @@ fun DownloadProgressIndicator(
 @Preview
 @Composable
 fun DownloadProgressIndicatorPreview() {
-    Row(Modifier.background(color = Color.Red)) {
-        DownloadProgressIndicator(
-            modifier = Modifier.weight(1f),
-            downloadStatus = DownloadStatus.Pending,
-            downloadProgress = 0f
-        )
-        Box(
-            modifier = Modifier
-                .size(4.dp)
-                .background(Color.Black)
-                .weight(1f)
-        )
-    }
+    DownloadProgressIndicator(
+        downloadStatus = DownloadStatus.Pending,
+        downloadProgress = 0f
+    )
+
 }
 
 
@@ -396,7 +340,7 @@ fun BookDetailsPreview() {
 @Composable
 fun BookInfo(modifier: Modifier = Modifier, book: BookWithExtras) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        book.language?.let {
+        book.languages?.let {
             InfoCell(text = it, icon = ImageVector.vectorResource(id = R.drawable.ic_language))
             Spacer(modifier = Modifier.width(17.dp))
         }
