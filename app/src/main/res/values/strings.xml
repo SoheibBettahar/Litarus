@@ -11,6 +11,17 @@
     <string name="retry">Retry</string>
     <string name="search">Search</string>
     <string name="table_of_content">Table of content</string>
-    <string name="download_successfully">Downloaded Successfully</string>
+    <string name="download_successfully">Downloaded Successfully </string>
     <string name="check_icon">Check Icon</string>
+    <string name="check_mark_download_success">✅ Download Completed Successfully </string>
+    <string name="close_mark_insufficient_space">❌ Insufficient Space</string>
+    <string name="warning_mark_internet_unavailable">⚠️ Internet Unavailable</string>
+    <string name="warning_mark_internet_slow">⚠️ Slow Network Connectivity</string>
+    <string name="close_mark_unknown_error">❌ Unknown Error Happened</string>
+    <string name="internet_unavailable">Internet Unavailable</string>
+    <string name="internet_slow">Slow Network Connectivity</string>
+    <string name="unknown_error">Unknown Error Happened</string>
+    <string name="server_error">Server Error</string>
+    <string name="share_book">Share this Book with</string>
+    <string name="clear_search_text_icon">Clear Search Text Icon</string>
 </resources>
