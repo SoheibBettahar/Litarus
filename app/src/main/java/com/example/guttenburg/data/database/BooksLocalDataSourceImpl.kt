@@ -1,6 +1,5 @@
 package com.example.guttenburg.data.database
 
-import android.util.Log
 import androidx.paging.PagingSource
 import androidx.room.withTransaction
 import com.example.guttenburg.data.database.detail.DatabaseBookWithExtras
@@ -20,7 +19,7 @@ class BooksLocalDataSourceImpl @Inject constructor(private val database: Guttenb
         val searchTextString = "%${searchText.replace(' ', '%')}%"
         val categoryString = "%${category.replace(' ', '%')}%"
         val languagesString = "%${languages.replace(' ', '%')}%"
-        Log.d(TAG, "booksByNameOrAuthorAndCategoryAndLanguages: $searchText, $category, $languages")
+
         return when {
             searchText.isNotBlank() && category.isNotBlank() && languages.isNotBlank() -> database.bookDao().getBySearchAndCategoryAndLanguages(searchTextString, categoryString, languages)
             searchText.isNotBlank() && category.isNotBlank() -> database.bookDao().getBySearchAndCategory(searchTextString, categoryString)
@@ -75,10 +74,6 @@ class BooksLocalDataSourceImpl @Inject constructor(private val database: Guttenb
 
     override suspend fun remoteKeysSize(): Int {
         return database.remoteKeysDao().size()
-    }
-
-    override suspend fun insertDownloadKey(bookId: Long, downloadId: Long) {
-        TODO("Not yet implemented")
     }
 
     override suspend fun insertBookWithExtras(bookWithExtras: DatabaseBookWithExtras) {

@@ -37,8 +37,6 @@ interface BooksLocalDataSource {
 
     suspend fun remoteKeysSize(): Int
 
-    suspend fun insertDownloadKey(bookId: Long, downloadId: Long)
-
     suspend fun insertBookWithExtras(bookWithExtras: DatabaseBookWithExtras)
 
     suspend fun containsBookWithExtras(id: Long): Boolean
