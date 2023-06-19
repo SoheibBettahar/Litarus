@@ -3,17 +3,19 @@ package com.example.guttenburg
 import android.app.DownloadManager
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.SnackbarHost
-import androidx.compose.material.SnackbarHostState
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -68,42 +70,60 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun GuttenburgApp() {
         GuttenburgTheme {
-            // A surface container using
-            // the 'background' color from the theme
-            val snackbarHostState = remember { SnackbarHostState() }
-            val coroutineScope = rememberCoroutineScope()
 
-
-            Scaffold(
+            Box(
                 modifier = Modifier
-                    .fillMaxSize(),
-                backgroundColor = MaterialTheme.colors.background,
-                snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-            ) { contentPadding ->
-                val navController = rememberNavController()
-                val systemUiController = rememberSystemUiController()
-                val useDarkIcons = !isSystemInDarkTheme()
+                    .background(MaterialTheme.colors.background)
+                    .fillMaxSize()
+            ) {
+                // A surface container using
+                // the 'background' color from the theme
+                val snackbarHostState = remember { SnackbarHostState() }
+                val coroutineScope = rememberCoroutineScope()
+                val context = LocalContext.current
+
+                Scaffold(
+                    modifier = Modifier.fillMaxSize().safeDrawingPadding(),
+                    backgroundColor = MaterialTheme.colors.background,
+                    snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+                ) { contentPadding ->
+                    val navController = rememberNavController()
+                    val systemUiController = rememberSystemUiController()
+                    val useDarkIcons = !isSystemInDarkTheme()
+
+                    LaunchedEffect(systemUiController, useDarkIcons) {
+                        systemUiController.setSystemBarsColor(
+                            Color.Transparent,
+                            darkIcons = useDarkIcons
+                        )
+                    }
 
 
-                LaunchedEffect(systemUiController, useDarkIcons) {
-                    systemUiController.setSystemBarsColor(
-                        Color.Transparent,
-                        darkIcons = useDarkIcons
-                    )
+                    GuttenburgNavHost(
+                        Modifier
+                            .padding(contentPadding), navController = navController,
+                        onShowSnackBar = { message ->
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message
+                                )
+                            }
+                        }, onShowSnackbarWithSettingsAction = { message, action ->
+                            coroutineScope.launch {
+                                val result = snackbarHostState.showSnackbar(message, action)
+                                Log.d(TAG, "GuttenburgApp: $result")
+
+                                if (result == SnackbarResult.ActionPerformed) {
+                                    Log.d(TAG, "GuttenburgApp: ActionPerformed")
+                                    val intent = Intent(
+                                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                        Uri.fromParts("package", context.packageName, null)
+                                    )
+                                    startActivity(intent)
+                                }
+                            }
+                        })
                 }
-
-
-                GuttenburgNavHost(
-                    Modifier
-                        .padding(contentPadding)
-                        .safeDrawingPadding(), navController = navController,
-                    onShowSnackBar = { message ->
-                        coroutineScope.launch {
-                            snackbarHostState.showSnackbar(
-                                message
-                            )
-                        }
-                    })
             }
         }
     }
@@ -113,7 +133,8 @@ class MainActivity : ComponentActivity() {
     fun GuttenburgNavHost(
         modifier: Modifier,
         navController: NavHostController,
-        onShowSnackBar: (String) -> Unit = {}
+        onShowSnackBar: (String) -> Unit = {},
+        onShowSnackbarWithSettingsAction: (String, String) -> Unit
     ) {
         NavHost(
             modifier = modifier,
@@ -139,6 +160,7 @@ class MainActivity : ComponentActivity() {
                 DetailScreen(
                     onBackPress = { navController.navigateUp() },
                     onShowSnackbar = onShowSnackBar,
+                    onShowSnackbarWithSettingsAction = onShowSnackbarWithSettingsAction,
                     onSharePress = { id ->
                         val intent = Intent(Intent.ACTION_SEND)
                         intent.type = "text/plain"

@@ -24,4 +24,7 @@
     <string name="server_error">Server Error</string>
     <string name="share_book">Share this Book with</string>
     <string name="clear_search_text_icon">Clear Search Text Icon</string>
+    <string name="go_to_settings">Go to settings</string>
+    <string name="storage_permission_required">Storage permission required</string>
+    <string name="downloading_book">Downloading book</string>
 </resources>

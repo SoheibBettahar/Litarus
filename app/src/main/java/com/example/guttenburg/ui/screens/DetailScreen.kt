@@ -1,6 +1,11 @@
 package com.example.guttenburg.ui.screens
 
+import android.Manifest
+import android.app.Activity
+import android.os.Build
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.rememberScrollState
@@ -16,11 +21,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.guttenburg.R
@@ -37,6 +44,10 @@ import com.example.guttenburg.ui.viewmodels.BookDetailUiState
 import com.example.guttenburg.ui.viewmodels.BookDetailViewModel
 import com.example.guttenburg.ui.viewmodels.DownloadState
 import com.example.guttenburg.util.DEFAULT_BOOK_WITH_EXTRAS
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionStatus
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 
 private const val TAG = "DetailScreen"
 
@@ -45,6 +56,7 @@ fun DetailScreen(
     viewModel: BookDetailViewModel = hiltViewModel(),
     onBackPress: () -> Unit = {},
     onShowSnackbar: (String) -> Unit = {},
+    onShowSnackbarWithSettingsAction: (text: String, action: String) -> Unit = { _, _ -> },
     onSharePress: (Long) -> Unit = {}
 ) {
     val book: BookDetailUiState by viewModel.bookUiState.collectAsState()
@@ -95,7 +107,8 @@ fun DetailScreen(
                         if (isOnline) viewModel.downloadBook(it)
                         else onShowSnackbar(internetUnavailable)
                     },
-                    onCancelDownload = viewModel::cancelDownload
+                    onCancelDownload = viewModel::cancelDownload,
+                    onShowSnackbarWithSettingsAction = onShowSnackbarWithSettingsAction
                 )
             }
 
@@ -121,6 +134,7 @@ fun DetailScreen(
 }
 
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun BookDetails(
     modifier: Modifier = Modifier,
@@ -128,11 +142,22 @@ fun BookDetails(
     downloadStatus: DownloadStatus = DownloadStatus.NotDownloading,
     downloadProgress: Float = 0f,
     onDownloadClick: (BookWithExtras) -> Unit = {},
-    onCancelDownload: (BookWithExtras) -> Unit = {}
+    onCancelDownload: (BookWithExtras) -> Unit = {},
+    onShowSnackbarWithSettingsAction: (String, String) -> Unit = { _, _ -> }
 ) {
     val isDownloadProgressVisible =
         downloadStatus is DownloadStatus.Pending || downloadStatus is DownloadStatus.Running || downloadStatus is DownloadStatus.Paused
     val isDownloadSuccessIndicatorVisible = downloadStatus is DownloadStatus.Successful
+
+    val storagePermissionState =
+        rememberPermissionState(permission = Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
+    val storagePermissionResultLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted -> if (isGranted) onDownloadClick(book) })
+
+    val storagePermissionRequired = stringResource(R.string.storage_permission_required)
+    val goToSettings = stringResource(R.string.go_to_settings)
 
     Column(
         modifier = modifier
@@ -193,7 +218,16 @@ fun BookDetails(
         DownloadButton(
             modifier = Modifier.padding(horizontal = 16.dp),
             book = book,
-            onDownloadClick = onDownloadClick,
+            onDownloadClick = {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q || storagePermissionState.status == PermissionStatus.Granted) {
+                    onDownloadClick(it)
+                } else if (storagePermissionState.status.shouldShowRationale) {
+                    onShowSnackbarWithSettingsAction(storagePermissionRequired, goToSettings)
+                } else {
+                    storagePermissionResultLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                }
+
+            },
             onCancelDownloadClick = onCancelDownload
         )
 
@@ -272,7 +306,6 @@ fun DownloadButton(
         else -> R.string.cancel
     }
     val onClick: () -> Unit = {
-        Log.d(TAG, "StartReadingButton: fileUri:${book.fileUri}, downloadId:${book.downloadId}")
         when (book.downloadId) {
             null -> onDownloadClick(book)
             else -> onCancelDownloadClick(book)
