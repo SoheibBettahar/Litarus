@@ -47,8 +47,8 @@ fun ListScreen(
     onShowSnackbar: (String) -> Unit = {}
 ) {
     val searchTerm = viewModel.searchTerm
-    val selectedCategory by viewModel.category.collectAsStateWithLifecycle()
-    val language by viewModel.language.collectAsStateWithLifecycle()
+    val selectedCategory = viewModel.category
+    val language = viewModel.language
     val lazyPagedItems = viewModel.searchedBooksPagingDataFlow.collectAsLazyPagingItems()
 
     val scrollState = rememberLazyGridState()

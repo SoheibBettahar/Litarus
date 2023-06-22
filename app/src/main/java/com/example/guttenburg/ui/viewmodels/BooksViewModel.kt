@@ -1,8 +1,11 @@
 package com.example.guttenburg.ui.viewmodels
 
 import androidx.compose.runtime.*
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
+import androidx.lifecycle.viewmodel.compose.saveable
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.guttenburg.data.repository.BooksRepository
@@ -16,11 +19,17 @@ import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
 @HiltViewModel
-class BooksViewModel @Inject constructor(private val booksRepository: BooksRepository) :
+class BooksViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val booksRepository: BooksRepository
+) :
     ViewModel() {
 
 
-    var searchTerm by mutableStateOf("")
+    @OptIn(SavedStateHandleSaveableApi::class)
+    var searchTerm by savedStateHandle.saveable() {
+        mutableStateOf("")
+    }
         private set
 
     @OptIn(FlowPreview::class)
@@ -28,16 +37,26 @@ class BooksViewModel @Inject constructor(private val booksRepository: BooksRepos
         .debounce(200)
         .conflate()
 
-    val category = MutableStateFlow(value = "")
+    @OptIn(SavedStateHandleSaveableApi::class)
+    var category by savedStateHandle.saveable() {
+        mutableStateOf(value = "")
+    }
+        private set
 
-    private val _language: MutableStateFlow<Language> = MutableStateFlow(NoLanguageFilter)
-    val language: StateFlow<Language>
-        get() = _language
+    private val categoryFlow = snapshotFlow { category }
+
+    @OptIn(SavedStateHandleSaveableApi::class)
+    var language by savedStateHandle.saveable {
+        mutableStateOf(NoLanguageFilter)
+    }
+    private set
+
+    private val languageFlow = snapshotFlow { language }
 
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val searchedBooksPagingDataFlow: Flow<PagingData<Book>> =
-        combine(searchTermFlow, category, language, ::Triple)
+        combine(searchTermFlow, categoryFlow, languageFlow, ::Triple)
 
             .flatMapLatest { (searchText, category, language) ->
                 searchBooks(searchText, category, language)
@@ -53,15 +72,15 @@ class BooksViewModel @Inject constructor(private val booksRepository: BooksRepos
         booksRepository.searchBooks(searchText, category, listOf(language.code))
 
     fun updateCategory(selected: String) {
-        category.value = selected
+        category = selected
     }
 
     fun updateSearchTerm(text: String) {
         searchTerm = text
     }
 
-    fun updateLanguage(language: Language){
-        _language.value = language
+    fun updateLanguage(language: Language) {
+        this.language = language
     }
 
 

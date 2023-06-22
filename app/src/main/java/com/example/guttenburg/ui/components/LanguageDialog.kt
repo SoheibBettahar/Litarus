@@ -1,5 +1,6 @@
 package com.example.guttenburg.ui.components
 
+import android.os.Parcelable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.guttenburg.ui.theme.GuttenburgTheme
+import kotlinx.parcelize.Parcelize
 
 val languages = mapOf(
     "All" to "",
@@ -99,9 +101,9 @@ val languages = mapOf(
     "Yiddish" to "yi",
 )
 val NoLanguageFilter = Language("All", "")
-data class Language(val label: String, val code: String)
 
-
+@Parcelize
+data class Language(val label: String, val code: String) : Parcelable
 
 
 @OptIn(ExperimentalFoundationApi::class)
