@@ -9,6 +9,7 @@ import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -26,9 +27,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.guttenburg.Destination.*
 import com.example.guttenburg.download.DownloadReceiver
@@ -37,6 +35,9 @@ import com.example.guttenburg.ui.screens.ListScreen
 import com.example.guttenburg.ui.screens.TrainingScreen
 import com.example.guttenburg.ui.theme.GuttenburgTheme
 import com.example.guttenburg.util.GUTTENBURG_URL
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.composable
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -67,6 +68,7 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
+    @OptIn(ExperimentalAnimationApi::class)
     @Composable
     private fun GuttenburgApp() {
         GuttenburgTheme {
@@ -87,7 +89,7 @@ class MainActivity : ComponentActivity() {
                     backgroundColor = MaterialTheme.colors.background,
                     snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
                 ) { contentPadding ->
-                    val navController = rememberNavController()
+                    val navController = rememberAnimatedNavController()
                     val systemUiController = rememberSystemUiController()
                     val useDarkIcons = !isSystemInDarkTheme()
 
@@ -129,6 +131,7 @@ class MainActivity : ComponentActivity() {
     }
 
 
+    @OptIn(ExperimentalAnimationApi::class)
     @Composable
     fun GuttenburgNavHost(
         modifier: Modifier,
@@ -136,7 +139,7 @@ class MainActivity : ComponentActivity() {
         onShowSnackBar: (String) -> Unit = {},
         onShowSnackbarWithSettingsAction: (String, String) -> Unit
     ) {
-        NavHost(
+        AnimatedNavHost(
             modifier = modifier,
             navController = navController,
             startDestination = BooksList.route

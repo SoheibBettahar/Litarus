@@ -2,6 +2,9 @@ package com.example.guttenburg.ui.screens
 
 
 import android.util.Log
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -11,8 +14,6 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
@@ -102,31 +103,30 @@ fun ListScreen(
 
         Box(modifier = Modifier.fillMaxSize()) {
 
-            if (lazyPagedItems.isRefreshSuccess()) {
-                BooksGrid(
-                    books = lazyPagedItems,
-                    gridState = scrollState,
-                    isAppendLoading = lazyPagedItems.isAppendLoading(),
-                    isAppendError = lazyPagedItems.isAppendError(),
-                    onBookItemClick = onBookItemClick,
-                    retry = { lazyPagedItems.retry() })
-            }
+                if (lazyPagedItems.isRefreshSuccess()) {
+                    BooksGrid(
+                        books = lazyPagedItems,
+                        gridState = scrollState,
+                        isAppendLoading = lazyPagedItems.isAppendLoading(),
+                        isAppendError = lazyPagedItems.isAppendError(),
+                        onBookItemClick = onBookItemClick,
+                        retry = { lazyPagedItems.retry() })
+                }
 
+                if (lazyPagedItems.isRefreshLoading()) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
 
-            if (lazyPagedItems.isRefreshLoading()) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            }
+                if (lazyPagedItems.isRefreshError()) {
+                    ErrorLayout(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(horizontal = 16.dp),
+                        onRetryClick = { lazyPagedItems.refresh() },
+                        error = lazyPagedItems.refreshError().error
+                    )
+                }
 
-
-            if (lazyPagedItems.isRefreshError()) {
-                ErrorLayout(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(horizontal = 16.dp),
-                    onRetryClick = { lazyPagedItems.refresh() },
-                    error = lazyPagedItems.refreshError().error
-                )
-            }
 
             if (isLanguageDialogVisible) {
                 LanguageDialog(
@@ -135,8 +135,6 @@ fun ListScreen(
                     dismiss = { isLanguageDialogVisible = false }
                 )
             }
-
-
         }
     }
 }
@@ -232,6 +230,10 @@ fun CategoriesPreview() {
     )
 }
 
+const val BOOK_ITEM_CONTENT_TYPE = 0
+const val FOOTER_CONTENT_TYPE = 1
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BooksGrid(
     modifier: Modifier = Modifier,
@@ -252,13 +254,22 @@ fun BooksGrid(
         horizontalArrangement = Arrangement.spacedBy(24.dp)
     ) {
 
-        items(count = books.itemCount, key = { index -> books[index]?.id ?: -1 }) { index ->
+        items(
+            count = books.itemCount,
+            key = { index -> books[index]?.id ?: -1 },
+            contentType = { BOOK_ITEM_CONTENT_TYPE }) { index ->
             val book = books[index]
-            book?.let { BookItem(book = book, onItemClick = onBookItemClick) }
+            book?.let {
+                BookItem(
+                    modifier = Modifier.animateItemPlacement(tween(500)),
+                    book = book,
+                    onItemClick = onBookItemClick
+                )
+            }
         }
 
         if (isAppendLoading || isAppendError) {
-            item(span = { GridItemSpan(maxLineSpan) }) {
+            item(span = { GridItemSpan(maxLineSpan) }, contentType = { FOOTER_CONTENT_TYPE }) {
                 AppendStateLayout(
                     isLoading = isAppendLoading, isError = isAppendError, retry = retry
                 )

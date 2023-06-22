@@ -1,8 +1,11 @@
 package com.example.guttenburg.ui.components
 
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -17,10 +20,16 @@ fun Category(
     isSelected: Boolean = false,
     onCategoryClick: (String) -> Unit = {}
 ) {
+    val transition =
+        updateTransition(targetState = isSelected, label = "Category Selection Transition")
 
-    val backgroundColor =
-        if (isSelected) MaterialTheme.colors.onSurface else MaterialTheme.colors.surface
-    val textColor = if (isSelected) MaterialTheme.colors.surface else MaterialTheme.colors.onSurface
+    val backgroundColor by transition.animateColor(label = "Background Color Animation") { isCurrentlySelected ->
+        if (isCurrentlySelected) MaterialTheme.colors.onSurface else MaterialTheme.colors.surface
+    }
+
+    val textColor by transition.animateColor(label = "Text Color Animation") { isCurrentlySelected ->
+        if (isCurrentlySelected) MaterialTheme.colors.surface else MaterialTheme.colors.onSurface
+    }
 
     Chip(
         modifier = modifier,

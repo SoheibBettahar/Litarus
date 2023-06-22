@@ -165,11 +165,11 @@ fun LanguageDialog(
 
 @Composable
 fun LanguageItem(language: Language, isSelected: Boolean, onClick: (Language) -> Unit) {
-    val buttonColor = if (isSelected) MaterialTheme.colors.primary
-    else MaterialTheme.colors.secondary
+    val buttonColor = if (isSelected) MaterialTheme.colors.secondary
+    else MaterialTheme.colors.primary
 
-    val textColor = if (isSelected) MaterialTheme.colors.onPrimary
-    else MaterialTheme.colors.onSecondary
+    val textColor = if (isSelected) MaterialTheme.colors.onSecondary
+    else MaterialTheme.colors.onPrimary
 
     Card(
         modifier = Modifier

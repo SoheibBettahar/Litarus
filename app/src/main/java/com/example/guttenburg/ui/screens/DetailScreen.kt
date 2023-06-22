@@ -1,13 +1,12 @@
 package com.example.guttenburg.ui.screens
 
 import android.Manifest
-import android.app.Activity
 import android.os.Build
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.*
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.getValue
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -20,14 +19,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.guttenburg.R
@@ -95,39 +93,43 @@ fun DetailScreen(
             onSharePress = { onSharePress(bookId) }
         )
 
-        Box(modifier = Modifier.fillMaxSize()) {
 
-            if (loadResult is Result.Success) {
-                BookDetails(
-                    modifier = Modifier.fillMaxSize(),
-                    book = loadResult.data,
-                    downloadStatus = downloadState.status,
-                    downloadProgress = downloadState.progress,
-                    onDownloadClick = {
-                        if (isOnline) viewModel.downloadBook(it)
-                        else onShowSnackbar(internetUnavailable)
-                    },
-                    onCancelDownload = viewModel::cancelDownload,
-                    onShowSnackbarWithSettingsAction = onShowSnackbarWithSettingsAction
-                )
-            }
-
-
-            if (loadResult is Result.Loading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(
-                        Alignment.Center
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (loadResult is Result.Success) {
+                    BookDetails(
+                        modifier = Modifier.fillMaxSize(),
+                        book = loadResult.data,
+                        downloadStatus = downloadState.status,
+                        downloadProgress = downloadState.progress,
+                        onDownloadClick = {
+                            if (isOnline) viewModel.downloadBook(it)
+                            else onShowSnackbar(internetUnavailable)
+                        },
+                        onCancelDownload = viewModel::cancelDownload,
+                        onShowSnackbarWithSettingsAction = onShowSnackbarWithSettingsAction
                     )
-                )
+                }
+
+
+                if (loadResult is Result.Loading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(
+                            Alignment.Center
+                        )
+                    )
+                }
+
+                if (loadResult is Result.Error) {
+                    ErrorLayout(
+                        modifier = Modifier.align(Alignment.Center),
+                        error = loadResult.exception,
+                        onRetryClick = { viewModel.getBook() }
+                    )
+                }
+
             }
 
-            if (loadResult is Result.Error)
-                ErrorLayout(
-                    modifier = Modifier.align(Alignment.Center),
-                    error = loadResult.exception,
-                    onRetryClick = { viewModel.getBook() }
-                )
-        }
+
 
     }
 
@@ -203,15 +205,12 @@ fun BookDetails(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (isDownloadProgressVisible)
+        AnimatedVisibility(visible = isDownloadProgressVisible) {
             DownloadProgressIndicator(
                 downloadStatus = downloadStatus,
                 downloadProgress = downloadProgress
             )
-        else
-            Spacer(modifier = Modifier.height(4.dp))
-
-
+        }
 
         Spacer(modifier = Modifier.height(14.dp))
 
@@ -233,10 +232,9 @@ fun BookDetails(
 
         Spacer(Modifier.height(2.dp))
 
-        if (isDownloadSuccessIndicatorVisible)
-            DownloadSuccessIndicator()
-        else
-            Spacer(Modifier.height(20.dp))
+
+        DownloadSuccessIndicator(isVisible = isDownloadSuccessIndicatorVisible)
+
 
 
         if (!book.description.isNullOrBlank()) {
@@ -268,6 +266,8 @@ fun DownloadProgressIndicator(
     val color = MaterialTheme.colors.secondary
     val strokeCap = StrokeCap.Round
 
+    val progress: Float by animateFloatAsState(targetValue = downloadProgress)
+
     if (downloadStatus == DownloadStatus.Pending)
         LinearProgressIndicator(
             modifier = localModifier,
@@ -276,7 +276,7 @@ fun DownloadProgressIndicator(
         )
     else
         LinearProgressIndicator(
-            progress = downloadProgress,
+            progress = progress,
             modifier = localModifier,
             color = color,
             strokeCap = strokeCap
@@ -294,6 +294,7 @@ fun DownloadProgressIndicatorPreview() {
 }
 
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun DownloadButton(
     modifier: Modifier = Modifier,
@@ -301,9 +302,9 @@ fun DownloadButton(
     onDownloadClick: (BookWithExtras) -> Unit = {},
     onCancelDownloadClick: (BookWithExtras) -> Unit = {}
 ) {
-    val buttonLabelId = when (book.downloadId) {
-        null -> R.string.download
-        else -> R.string.cancel
+    val buttonLabel = when (book.downloadId) {
+        null -> stringResource(id = R.string.download)
+        else -> stringResource(id = R.string.cancel)
     }
     val onClick: () -> Unit = {
         when (book.downloadId) {
@@ -319,7 +320,10 @@ fun DownloadButton(
         ), onClick = onClick,
         shape = RoundedCornerShape(12.dp)
     ) {
-        Text(text = stringResource(buttonLabelId), style = MaterialTheme.typography.body1)
+        AnimatedContent(targetState = buttonLabel) { label ->
+            Text(text = label, style = MaterialTheme.typography.body1)
+        }
+
     }
 }
 
@@ -330,9 +334,11 @@ private fun DownloadButtonPreview() {
 }
 
 @Composable
-fun DownloadSuccessIndicator(modifier: Modifier = Modifier) {
+fun DownloadSuccessIndicator(modifier: Modifier = Modifier, isVisible: Boolean = false) {
+    val alpha: Float by animateFloatAsState(targetValue = if (isVisible) 1f else 0f)
+
     Row(
-        modifier = modifier,
+        modifier = modifier.graphicsLayer(alpha = alpha),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
     ) {

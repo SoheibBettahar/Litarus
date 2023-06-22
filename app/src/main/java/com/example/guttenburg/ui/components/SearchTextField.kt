@@ -1,5 +1,6 @@
 package com.example.guttenburg.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -128,7 +129,7 @@ fun ListAppbar(
 @Preview
 @Composable
 private fun ListAppbarPreview() {
-    GuttenburgTheme() {
+    GuttenburgTheme {
         ListAppbar(modifier = Modifier.fillMaxWidth(), searchText = "", onLanguageButtonClick = {})
     }
 }
@@ -145,14 +146,18 @@ fun LanguageButton(isBadgeVisible: Boolean = false, onClick: () -> Unit = {}) {
                 contentDescription = "Choose Language Button"
             )
 
-            if (isBadgeVisible)
+            AnimatedVisibility(
+                modifier = Modifier.align(Alignment.BottomEnd),
+                visible = isBadgeVisible
+            ) {
                 Box(
                     modifier = Modifier
-                        .align(Alignment.BottomEnd)
                         .size(10.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colors.secondary)
                 )
+            }
+
 
         }
     }
