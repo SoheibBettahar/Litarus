@@ -10,9 +10,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -24,6 +22,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -53,6 +52,7 @@ class MainActivity : ComponentActivity() {
     lateinit var downloadReceiver: DownloadReceiver
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -72,24 +72,20 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun GuttenburgApp() {
         GuttenburgTheme {
-
-            Box(
-                modifier = Modifier
-                    .background(MaterialTheme.colors.background)
-                    .fillMaxSize()
-            ) {
-                // A surface container using
-                // the 'background' color from the theme
-                val snackbarHostState = remember { SnackbarHostState() }
-                val coroutineScope = rememberCoroutineScope()
-                val context = LocalContext.current
+            val snackbarHostState = remember { SnackbarHostState() }
+            val coroutineScope = rememberCoroutineScope()
+            val context = LocalContext.current
 
                 Scaffold(
-                    modifier = Modifier.fillMaxSize().safeDrawingPadding(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .safeDrawingPadding(),
                     backgroundColor = MaterialTheme.colors.background,
                     snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
                 ) { contentPadding ->
                     val navController = rememberAnimatedNavController()
+
+                    //TODO: Bug, when oppening the app, systemBarColor is always light
                     val systemUiController = rememberSystemUiController()
                     val useDarkIcons = !isSystemInDarkTheme()
 
@@ -126,7 +122,7 @@ class MainActivity : ComponentActivity() {
                             }
                         })
                 }
-            }
+
         }
     }
 
