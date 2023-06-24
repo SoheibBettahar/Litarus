@@ -23,7 +23,7 @@ android {
         }
 
         def properties = new Properties()
-        properties.load(project.rootProject.file("local.properties").newDataInputStream())
+        properties.load(project.rootProject.file("secrets.properties").newDataInputStream())
         buildConfigField "String", "GOOGLE_BOOKS_API_KEY", "\"${properties.getProperty("GOOGLE_BOOKS_API_KEY")}\""
     }
 
