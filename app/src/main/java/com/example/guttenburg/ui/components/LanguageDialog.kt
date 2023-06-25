@@ -1,22 +1,18 @@
 package com.example.guttenburg.ui.components
 
 import android.os.Parcelable
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -24,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.guttenburg.R
 import com.example.guttenburg.ui.theme.GuttenburgTheme
 import kotlinx.parcelize.Parcelize
 
@@ -134,7 +131,7 @@ fun LanguageDialog(
                 item(span = StaggeredGridItemSpan.FullLine) {
                     Text(
                         modifier = Modifier.fillMaxWidth(),
-                        text = "Select by language",
+                        text = stringResource(R.string.select_language),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.subtitle1,
                         fontSize = 18.sp
@@ -148,7 +145,7 @@ fun LanguageDialog(
                     val code: String = languages[label]!!
                     val data = Language(label, code)
                     LanguageItem(
-                        data,
+                        language = data,
                         isSelected = selectedLanguage.label == label,
                         onClick = { language ->
                             onItemClick(language)
@@ -157,7 +154,7 @@ fun LanguageDialog(
                     )
                 }
 
-                item { Spacer(modifier = Modifier.size(60.dp)) }
+                item(span = StaggeredGridItemSpan.FullLine) { Spacer(modifier = Modifier.size(12.dp)) }
             }
         }
 
@@ -166,33 +163,30 @@ fun LanguageDialog(
 }
 
 @Composable
-fun LanguageItem(language: Language, isSelected: Boolean, onClick: (Language) -> Unit) {
-    val buttonColor = if (isSelected) MaterialTheme.colors.secondary
-    else MaterialTheme.colors.primary
+fun LanguageItem(
+    modifier: Modifier = Modifier,
+    language: Language,
+    isSelected: Boolean,
+    onClick: (Language) -> Unit
+) {
+    val backgroundColor = if (isSelected) MaterialTheme.colors.secondary.copy(alpha = 0.1f)
+    else Color.Transparent
 
-    val textColor = if (isSelected) MaterialTheme.colors.onSecondary
-    else MaterialTheme.colors.onPrimary
-
-    Card(
-        modifier = Modifier
-            .padding(6.dp)
-            .clickable { onClick(language) },
-        backgroundColor = buttonColor,
-        shape = RoundedCornerShape(14.dp),
+    TextButton(
+        modifier = modifier,
+        border = if (isSelected) BorderStroke(2.dp, MaterialTheme.colors.secondary) else null,
+        contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp),
+        onClick = { onClick(language) },
+        colors = ButtonDefaults.textButtonColors(backgroundColor = backgroundColor)
     ) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(
-                modifier = Modifier.padding(vertical = 6.dp, horizontal = 4.dp),
-                text = language.label,
-                fontSize = 18.sp,
-                fontStyle = MaterialTheme.typography.body1.fontStyle,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
-                color = textColor,
-            )
-        }
+        Text(
+            text = language.label,
+            fontStyle = MaterialTheme.typography.body1.fontStyle,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 

@@ -15,6 +15,7 @@ import com.example.guttenburg.ui.components.NoLanguageFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
@@ -49,9 +50,10 @@ class BooksViewModel @Inject constructor(
     var language by savedStateHandle.saveable {
         mutableStateOf(NoLanguageFilter)
     }
-    private set
+        private set
 
     private val languageFlow = snapshotFlow { language }
+        .onEach { delay(500) }
 
 
     @OptIn(ExperimentalCoroutinesApi::class)

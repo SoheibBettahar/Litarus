@@ -27,4 +27,5 @@
     <string name="go_to_settings">Go to settings</string>
     <string name="storage_permission_required">Storage permission required</string>
     <string name="downloading_book">Downloading book</string>
+    <string name="select_language">Select language</string>
 </resources>
