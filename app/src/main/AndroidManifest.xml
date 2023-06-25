@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+<manifest package="com.soheibbettahar.litarus" 
+ 	 xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -9,7 +10,7 @@
         android:maxSdkVersion="28" />
 
     <application
-        android:name=".GuttenburgApplication"
+        android:name=".LitarusApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -21,7 +22,7 @@
 
         <provider
             android:name="androidx.startup.InitializationProvider"
-            android:authorities="com.example.guttenburg.androidx-startup"
+            android:authorities="com.soheibbettahar.litarus.androidx-startup"
             tools:node="remove">
         </provider>
 
