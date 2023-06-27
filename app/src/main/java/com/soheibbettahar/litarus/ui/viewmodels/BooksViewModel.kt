@@ -35,7 +35,7 @@ class BooksViewModel @Inject constructor(
 
     @OptIn(FlowPreview::class)
     private val searchTermFlow: Flow<String> = snapshotFlow { searchTerm }
-        .debounce(200)
+        .debounce(500)
         .conflate()
 
     @OptIn(SavedStateHandleSaveableApi::class)
