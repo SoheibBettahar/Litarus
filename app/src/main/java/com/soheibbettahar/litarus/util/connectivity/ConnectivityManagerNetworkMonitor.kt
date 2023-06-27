@@ -1,4 +1,4 @@
-package com.soheibbettahar.litarus.util
+package com.soheibbettahar.litarus.util.connectivity
 
 import android.content.Context
 import android.net.ConnectivityManager

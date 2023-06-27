@@ -8,7 +8,7 @@ import com.soheibbettahar.litarus.data.Result
 import com.soheibbettahar.litarus.data.repository.model.BookWithExtras
 import com.soheibbettahar.litarus.data.repository.BooksRepository
 import com.soheibbettahar.litarus.download.DownloadStatus
-import com.soheibbettahar.litarus.util.NetworkMonitor
+import com.soheibbettahar.litarus.util.connectivity.NetworkMonitor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
