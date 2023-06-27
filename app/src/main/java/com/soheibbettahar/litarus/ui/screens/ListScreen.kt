@@ -27,11 +27,14 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.soheibbettahar.litarus.R
 import com.soheibbettahar.litarus.data.repository.model.Book
+import com.soheibbettahar.litarus.ui.TrackScreenViewEvent
 import com.soheibbettahar.litarus.ui.components.*
+import com.soheibbettahar.litarus.ui.openBook
 import com.soheibbettahar.litarus.ui.util.*
 import com.soheibbettahar.litarus.ui.viewmodels.BooksViewModel
 import com.soheibbettahar.litarus.util.DEFAULT_BOOK_LIST
 import com.soheibbettahar.litarus.util.DEFAULT_CATEGORIES
+import com.soheibbettahar.litarus.util.analytics.LocalAnalyticsHelper
 import kotlinx.coroutines.flow.*
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
@@ -46,6 +49,7 @@ fun ListScreen(
     onBookItemClick: (id: Long, title: String, author: String?) -> Unit = { _, _, _ -> },
     onShowSnackbar: (String) -> Unit = {}
 ) {
+
     val searchTerm = viewModel.searchTerm
     val selectedCategory = viewModel.category
     val language = viewModel.language
@@ -83,6 +87,8 @@ fun ListScreen(
 
     var isLanguageDialogVisible: Boolean by remember { mutableStateOf(false) }
 
+    val analyticsHelper = LocalAnalyticsHelper.current
+
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
         ListAppbar(
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
@@ -103,29 +109,32 @@ fun ListScreen(
 
         Box(modifier = Modifier.fillMaxSize()) {
 
-                if (lazyPagedItems.isRefreshSuccess()) {
-                    BooksGrid(
-                        books = lazyPagedItems,
-                        gridState = scrollState,
-                        isAppendLoading = lazyPagedItems.isAppendLoading(),
-                        isAppendError = lazyPagedItems.isAppendError(),
-                        onBookItemClick = onBookItemClick,
-                        retry = { lazyPagedItems.retry() })
-                }
+            if (lazyPagedItems.isRefreshSuccess()) {
+                BooksGrid(
+                    books = lazyPagedItems,
+                    gridState = scrollState,
+                    isAppendLoading = lazyPagedItems.isAppendLoading(),
+                    isAppendError = lazyPagedItems.isAppendError(),
+                    onBookItemClick = { id, title, author ->
+                        analyticsHelper.openBook(id.toString(), title, author.orEmpty())
+                        onBookItemClick(id, title, author)
+                    },
+                    retry = { lazyPagedItems.retry() })
+            }
 
-                if (lazyPagedItems.isRefreshLoading()) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
+            if (lazyPagedItems.isRefreshLoading()) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
 
-                if (lazyPagedItems.isRefreshError()) {
-                    ErrorLayout(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(horizontal = 16.dp),
-                        onRetryClick = { lazyPagedItems.refresh() },
-                        error = lazyPagedItems.refreshError().error
-                    )
-                }
+            if (lazyPagedItems.isRefreshError()) {
+                ErrorLayout(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(horizontal = 16.dp),
+                    onRetryClick = { lazyPagedItems.refresh() },
+                    error = lazyPagedItems.refreshError().error
+                )
+            }
 
 
             if (isLanguageDialogVisible) {
@@ -137,6 +146,9 @@ fun ListScreen(
             }
         }
     }
+
+    TrackScreenViewEvent(screenName = "List")
+
 }
 
 

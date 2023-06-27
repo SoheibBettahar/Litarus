@@ -46,6 +46,9 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
+import com.soheibbettahar.litarus.ui.TrackScreenViewEvent
+import com.soheibbettahar.litarus.ui.shareBook
+import com.soheibbettahar.litarus.util.analytics.LocalAnalyticsHelper
 
 private const val TAG = "DetailScreen"
 
@@ -61,6 +64,8 @@ fun DetailScreen(
     val loadResult = book.loadResult
     val downloadState: DownloadState by viewModel.downloadState.collectAsStateWithLifecycle()
     val bookId = viewModel.id
+    val bookTitle = viewModel.title
+    val bookAuthor = viewModel.author
     val isOnline: Boolean by viewModel.isOnline.collectAsStateWithLifecycle()
 
     val downloadSuccess = stringResource(R.string.check_mark_download_success)
@@ -83,6 +88,8 @@ fun DetailScreen(
         }
     }
 
+    val analyticsHelper = LocalAnalyticsHelper.current
+
 
     Column(modifier = Modifier.fillMaxSize()) {
 
@@ -90,7 +97,9 @@ fun DetailScreen(
             modifier = Modifier.fillMaxWidth(),
             title = stringResource(R.string.details),
             onBackPress = onBackPress,
-            onSharePress = { onSharePress(bookId) }
+            onSharePress = {
+                analyticsHelper.shareBook(bookId.toString(), bookTitle, bookAuthor)
+                onSharePress(bookId) }
         )
 
 
@@ -128,11 +137,9 @@ fun DetailScreen(
                 }
 
             }
-
-
-
     }
 
+    TrackScreenViewEvent(screenName = "Detail")
 }
 
 

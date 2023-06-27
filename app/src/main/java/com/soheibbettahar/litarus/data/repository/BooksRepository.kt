@@ -32,6 +32,6 @@ interface BooksRepository {
 
     fun getDownloadStatus(downloadId: Long): Flow<DownloadStatus>
 
-    fun cancelDownload(downloadId: Long)
+    fun cancelDownload(book: BookWithExtras)
 
 }

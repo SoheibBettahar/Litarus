@@ -14,6 +14,7 @@ import com.soheibbettahar.litarus.data.repository.model.Book
 import com.soheibbettahar.litarus.data.repository.model.BookWithExtras
 import com.soheibbettahar.litarus.download.DownloadStatus
 import com.soheibbettahar.litarus.download.Downloader
+import com.soheibbettahar.litarus.util.analytics.AnalyticsHelper
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -29,6 +30,7 @@ class BooksRepositoryImpl @Inject constructor(
     private val remoteDataSource: RemoteDataSource,
     private val booksLocalDataSource: BooksLocalDataSource,
     private val downloader: Downloader,
+    private val analyticsHelper: AnalyticsHelper,
     private val dispatcherIO: CoroutineDispatcher
 ) : BooksRepository {
 
@@ -50,17 +52,33 @@ class BooksRepositoryImpl @Inject constructor(
             remoteMediator = GetAllBooksRemoteMediator(remoteDataSource, booksLocalDataSource),
             pagingSourceFactory = pagingSourceFactory,
 
-        ).flow
+            ).flow
             .map { pagingData -> pagingData.map(DatabaseBook::asExternalModel) }
             .flowOn(dispatcherIO)
     }
 
     @OptIn(ExperimentalPagingApi::class)
-    override fun searchBooks( searchText: String, category: String, languages: List<String>): Flow<PagingData<Book>> {
+    override fun searchBooks(
+        searchText: String,
+        category: String,
+        languages: List<String>
+    ): Flow<PagingData<Book>> {
         val formattedLanguages = languages.joinToString(separator = ",")
-        val pagingSourceFactory =
-            { booksLocalDataSource.booksByNameOrAuthorAndCategoryAndLanguages(searchText, category, formattedLanguages) }
 
+        analyticsHelper.logSearchBook(
+            term = searchText,
+            category = category,
+            languages = formattedLanguages
+        )
+
+        val pagingSourceFactory =
+            {
+                booksLocalDataSource.booksByNameOrAuthorAndCategoryAndLanguages(
+                    searchText,
+                    category,
+                    formattedLanguages
+                )
+            }
 
         return Pager(
             config = PagingConfig(
@@ -117,7 +135,8 @@ class BooksRepositoryImpl @Inject constructor(
 
     override suspend fun downloadBook(book: BookWithExtras) {
         withContext(dispatcherIO) {
-            Log.d(TAG, "book: $book")
+            analyticsHelper.logDownloadBook(book = book)
+
             book.downloadUrl?.let { downloadUrl ->
                 val downloadId = downloader.downloadFile(
                     downloadUrl,
@@ -157,8 +176,10 @@ class BooksRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun cancelDownload(downloadId: Long) {
-        downloader.cancelDownload(downloadId = downloadId)
+    override fun cancelDownload(book: BookWithExtras) {
+        analyticsHelper.logCancelDownloadBook(book = book)
+
+        downloader.cancelDownload(downloadId = book.downloadId!!)
     }
 
     override fun getDownloadProgress(downloadId: Long): Flow<Float> =

@@ -15,10 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -38,6 +35,8 @@ import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.soheibbettahar.litarus.util.analytics.AnalyticsHelper
+import com.soheibbettahar.litarus.util.analytics.LocalAnalyticsHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -51,6 +50,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var downloadReceiver: DownloadReceiver
 
+    @Inject
+    lateinit var analyticsHelper: AnalyticsHelper
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -59,7 +61,10 @@ class MainActivity : ComponentActivity() {
         registerReceiver(downloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 
         setContent {
-            LitarusApp()
+            CompositionLocalProvider(LocalAnalyticsHelper provides analyticsHelper) {
+                LitarusApp()
+            }
+
         }
     }
 

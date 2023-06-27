@@ -37,8 +37,8 @@ class BookDetailViewModel @Inject constructor(
     ViewModel() {
 
     val id: Long = savedStateHandle["id"] ?: -1
-    private val title: String = savedStateHandle["title"] ?: ""
-    private val author: String = savedStateHandle["author"] ?: ""
+    val title: String = savedStateHandle["title"] ?: ""
+    val author: String = savedStateHandle["author"] ?: ""
 
     private val _bookUiState = MutableStateFlow(BookDetailUiState())
     val bookUiState: StateFlow<BookDetailUiState>
@@ -108,7 +108,6 @@ class BookDetailViewModel @Inject constructor(
     }
 
     fun downloadBook(book: BookWithExtras) {
-        Log.d(TAG, "downloadBook: $book")
         viewModelScope.launch {
             booksRepository.downloadBook(book)
         }
@@ -117,7 +116,7 @@ class BookDetailViewModel @Inject constructor(
     fun cancelDownload(book: BookWithExtras) {
         viewModelScope.launch {
             book.downloadId?.let {
-                booksRepository.cancelDownload(downloadId = it)
+                booksRepository.cancelDownload(book)
             }
 
         }
