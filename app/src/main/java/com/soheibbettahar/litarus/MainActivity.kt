@@ -24,6 +24,10 @@ import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.composable
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.soheibbettahar.litarus.Destination.*
 import com.soheibbettahar.litarus.download.DownloadReceiver
 import com.soheibbettahar.litarus.ui.screens.DetailScreen
@@ -31,10 +35,6 @@ import com.soheibbettahar.litarus.ui.screens.ListScreen
 import com.soheibbettahar.litarus.ui.screens.TrainingScreen
 import com.soheibbettahar.litarus.ui.theme.LitarusTheme
 import com.soheibbettahar.litarus.util.GUTTENBURG_URL
-import com.google.accompanist.navigation.animation.AnimatedNavHost
-import com.google.accompanist.navigation.animation.composable
-import com.google.accompanist.navigation.animation.rememberAnimatedNavController
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.soheibbettahar.litarus.util.analytics.AnalyticsHelper
 import com.soheibbettahar.litarus.util.analytics.LocalAnalyticsHelper
 import dagger.hilt.android.AndroidEntryPoint
