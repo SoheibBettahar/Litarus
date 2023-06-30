@@ -14,7 +14,7 @@ data class NetworkGoogleBookInfo(
     @Json(name = "authors") var authors: List<String> = emptyList(),
     @Json(name = "description") var description: String? = null,
     @Json(name = "pageCount") var pageCount: Int? = null,
-    @Json(name = "imageLinks") var imageLinks: ImageLinks = ImageLinks(),
+    @Json(name = "imageLinks") var imageLinks: NetworkImageLinks = NetworkImageLinks(),
     //@Json(name = "publisher") var publisher: String? = null,
     //@Json(name = "publishedDate") var publishedDate: String? = null,
     //@Json(name = "industryIdentifiers") var industryIdentifiers: ArrayList<IndustryIdentifiers> = arrayListOf(),
@@ -33,8 +33,5 @@ data class NetworkGoogleBookInfo(
     //@Json(name = "canonicalVolumeLink") var canonicalVolumeLink: String? = null
 )
 
-data class ImageLinks(
-    @Json(name = "thumbnail") val thumbnail: String = "",
-    @Json(name = "small") val small: String = ""
-)
+
 
