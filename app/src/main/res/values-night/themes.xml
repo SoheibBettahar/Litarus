@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="Theme.Litarus" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@color/black_chocolate</item>
+    </style>
+
+
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="android:windowSplashScreenBackground" tools:targetApi="s">@color/black_chocolate</item>
+        <item name="android:windowSplashScreenBehavior" tools:targetApi="tiramisu">icon_preferred</item>  <!-- This is to never show an empty splash screen in Android 13+-->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/language_svg</item>  <!--TODO: Change icon to logo -->
+        <item name="postSplashScreenTheme">@style/Theme.Litarus</item>
+        <item name="android:windowSplashScreenAnimationDuration" tools:targetApi="s">1000</item>
+    </style>
+
+</resources>
