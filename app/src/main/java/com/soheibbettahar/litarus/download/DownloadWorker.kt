@@ -92,7 +92,7 @@ class DownloadWorker @AssistedInject constructor(
                 )
             )
             //TODO: Use App Icon as small icon
-            .setSmallIcon(R.drawable.mobydick)
+            .setSmallIcon(R.drawable.texture)
             .setOngoing(true)
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
