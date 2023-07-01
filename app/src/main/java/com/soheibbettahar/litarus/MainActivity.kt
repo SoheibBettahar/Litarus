@@ -6,7 +6,6 @@ import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -32,7 +31,6 @@ import com.soheibbettahar.litarus.Destination.*
 import com.soheibbettahar.litarus.download.DownloadReceiver
 import com.soheibbettahar.litarus.ui.screens.DetailScreen
 import com.soheibbettahar.litarus.ui.screens.ListScreen
-import com.soheibbettahar.litarus.ui.screens.TrainingScreen
 import com.soheibbettahar.litarus.ui.theme.LitarusTheme
 import com.soheibbettahar.litarus.util.GUTTENBURG_URL
 import com.soheibbettahar.litarus.util.analytics.AnalyticsHelper
@@ -114,10 +112,8 @@ class MainActivity : ComponentActivity() {
                     }, onShowSnackbarWithSettingsAction = { message, action ->
                         coroutineScope.launch {
                             val result = snackbarHostState.showSnackbar(message, action)
-                            Log.d(TAG, "GuttenburgApp: $result")
 
                             if (result == SnackbarResult.ActionPerformed) {
-                                Log.d(TAG, "GuttenburgApp: ActionPerformed")
                                 val intent = Intent(
                                     Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                                     Uri.fromParts("package", context.packageName, null)
@@ -145,8 +141,6 @@ class MainActivity : ComponentActivity() {
             navController = navController,
             startDestination = BooksList.route
         ) {
-            composable(Training.route) { TrainingScreen() }
-
             composable(BooksList.route) {
                 ListScreen(onBookItemClick = { id, title, author ->
                     val route = "${BookDetail.route}/$id/$title?author={$author}"

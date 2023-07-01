@@ -1,8 +1,6 @@
 package com.soheibbettahar.litarus.ui.screens
 
 
-import android.util.Log
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -21,7 +19,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -57,12 +54,10 @@ fun ListScreen(
 
     val scrollState = rememberLazyGridState()
     LaunchedEffect(lazyPagedItems) {
-        Log.d(TAG, "ScrollStateFlow created")
         snapshotFlow { lazyPagedItems.loadState }
             .asRemotePresentationState()
             .map { it == RemotePresentationState.PRESENTED }
             .distinctUntilChanged()
-            .onEach { Log.d(TAG, "OnEach called(): $it") }
             .collect { hasFinishedLoading ->
                 if (hasFinishedLoading) scrollState.animateScrollToItem(
                     0

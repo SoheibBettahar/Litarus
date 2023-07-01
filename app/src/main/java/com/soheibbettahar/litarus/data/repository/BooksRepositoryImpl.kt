@@ -112,9 +112,6 @@ class BooksRepositoryImpl @Inject constructor(
                 val bookPlaceHolder = book.await()
                 val bookWithExtrasPlaceHolder = bookExtras.await()
 
-                Log.d(TAG, "fetchBookWithExtras: book = $bookPlaceHolder")
-                Log.d(TAG, "fetchBookWithExtras: bookWithExtras = $bookWithExtrasPlaceHolder")
-
                 val databaseBookWithExtras =
                     DatabaseBookWithExtras.from(bookPlaceHolder, bookWithExtrasPlaceHolder)
                 booksLocalDataSource.insertBookWithExtras(databaseBookWithExtras)

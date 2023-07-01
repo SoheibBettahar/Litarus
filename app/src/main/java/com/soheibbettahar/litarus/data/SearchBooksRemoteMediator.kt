@@ -1,9 +1,8 @@
 package com.soheibbettahar.litarus.data
 
-import android.util.Log
 import androidx.paging.*
-import com.soheibbettahar.litarus.data.database.paging.DatabaseBook
 import com.soheibbettahar.litarus.data.database.BooksLocalDataSource
+import com.soheibbettahar.litarus.data.database.paging.DatabaseBook
 import com.soheibbettahar.litarus.data.database.paging.RemoteKeys
 import com.soheibbettahar.litarus.data.network.RemoteDataSource
 import com.soheibbettahar.litarus.data.network.guttendexApi.asDatabaseModel
@@ -24,7 +23,6 @@ class SearchBooksRemoteMediator(
 ) : RemoteMediator<Int, DatabaseBook>() {
 
     override suspend fun initialize(): InitializeAction {
-        Log.d(TAG, "initialize called()")
         return InitializeAction.LAUNCH_INITIAL_REFRESH
     }
 
@@ -57,8 +55,6 @@ class SearchBooksRemoteMediator(
                 nextKey
             }
         }
-
-        Log.d(TAG, "load called(): loadType:$loadType, page: $page")
 
         return try {
             val response = bookRemoteDataSource.searchBooks(page, searchText, category, languages)

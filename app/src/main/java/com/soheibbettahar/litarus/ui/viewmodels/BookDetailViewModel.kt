@@ -75,7 +75,6 @@ class BookDetailViewModel @Inject constructor(
 
         val downloadStatus = downloadId.filterNotNull()
             .flatMapLatest { booksRepository.getDownloadStatus(it) }
-            .onEach { Log.d(TAG, "downloadStatus: $it") }
             .distinctUntilChanged()
 
 

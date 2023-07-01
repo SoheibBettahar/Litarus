@@ -7,18 +7,17 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.*
 import com.soheibbettahar.litarus.MainActivity
+import com.soheibbettahar.litarus.R
 import com.soheibbettahar.litarus.data.repository.BooksRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.Duration
-import com.soheibbettahar.litarus.R
 
 private const val TAG = "DownloadWorker"
 private const val DOWNLOAD_ID_KEY = "downloadId"
@@ -56,7 +55,6 @@ class DownloadWorker @AssistedInject constructor(
         return withContext(Dispatchers.IO) {
             try {
                 val downloadId = inputData.getLong(DOWNLOAD_ID_KEY, -1)
-                Log.d(TAG, "doWork: downloadId: $downloadId")
                 repository.addFileUriToDownloadedBook(downloadId)
                 Result.Success()
             } catch (throwable: Throwable) {

@@ -30,7 +30,6 @@ class DownloadReceiver @Inject constructor() :
         if (intent?.action == DownloadManager.ACTION_DOWNLOAD_COMPLETE) {
             val downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
             if (downloadId != -1L) {
-                Log.d(TAG, "onReceive: downloadID: $downloadId ACTION_DOWNLOAD_COMPLETE called")
                 DownloadWorker.enqueueRequest(context, downloadId)
 
             }

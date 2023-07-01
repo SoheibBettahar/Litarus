@@ -7,9 +7,7 @@ import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.os.Environment
-import android.util.Log
 import android.webkit.MimeTypeMap
-import androidx.compose.ui.text.toLowerCase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.awaitClose
@@ -34,7 +32,6 @@ class AndroidDownloader @Inject constructor(@ApplicationContext val context: Con
         extension: String
     ): Long {
         val downloadUri = Uri.parse(downloadUrl)
-        Log.d(TAG, "downloadFile: uri: $downloadUri")
         val request = Request(downloadUri).apply {
             setTitle(title)
             setDescription(description)
@@ -49,7 +46,6 @@ class AndroidDownloader @Inject constructor(@ApplicationContext val context: Con
 
         val downloadId = downloadManager.enqueue(request)
 
-        Log.d(TAG, "downloadFile: request:$request downloadId:$downloadId")
 
         return downloadId
     }
@@ -66,7 +62,6 @@ class AndroidDownloader @Inject constructor(@ApplicationContext val context: Con
         var type = map.getMimeTypeFromExtension(ext)
         type = type ?: "*/*"
 
-        Log.d(TAG, "parseMimeType: $type")
         return type
     }
 
