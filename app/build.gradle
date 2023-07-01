@@ -32,7 +32,8 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -116,9 +117,6 @@ dependencies {
 
     //accompanist-systemuicontroller (status bar manipulation from compose)
     implementation "com.google.accompanist:accompanist-systemuicontroller:0.28.0"
-
-    // Jsoup HTML Parser.
-    implementation "org.jsoup:jsoup:1.15.2"
 
     //Runtime permissions for compose
     implementation "com.google.accompanist:accompanist-permissions:0.29.0-alpha"
