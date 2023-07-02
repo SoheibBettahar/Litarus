@@ -386,26 +386,25 @@ fun BookDetailsPreview() {
 @Composable
 fun BookInfo(modifier: Modifier = Modifier, book: BookWithExtras) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        book.languages?.let {
-            InfoCell(text = it, icon = ImageVector.vectorResource(id = R.drawable.ic_language))
+        if(book.languages.isNotEmpty()){
+            InfoCell(text = book.languages, icon = ImageVector.vectorResource(id = R.drawable.ic_language))
             Spacer(modifier = Modifier.width(17.dp))
         }
 
-        book.pageCount?.let {
+        if(book.pageCount > 0){
             InfoCell(
-                text = it.toString(),
+                text = book.pageCount.toString(),
                 icon = ImageVector.vectorResource(id = R.drawable.ic_page_count)
             )
             Spacer(modifier = Modifier.width(17.dp))
         }
 
-        book.downloadCount?.let {
+        if(book.downloadCount > -1){
             InfoCell(
-                text = it.toString(),
+                text = book.downloadCount.toString(),
                 icon = ImageVector.vectorResource(id = R.drawable.ic_download_count)
             )
         }
-
     }
 }
 
