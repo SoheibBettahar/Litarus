@@ -12,6 +12,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
@@ -80,7 +81,7 @@ fun ListScreen(
         }
     }
 
-    var isLanguageDialogVisible: Boolean by remember { mutableStateOf(false) }
+    var isLanguageDialogVisible: Boolean by rememberSaveable { mutableStateOf(false) }
 
     val analyticsHelper = LocalAnalyticsHelper.current
 
