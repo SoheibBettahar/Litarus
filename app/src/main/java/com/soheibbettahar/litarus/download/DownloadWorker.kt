@@ -89,8 +89,8 @@ class DownloadWorker @AssistedInject constructor(
                     pendingIntentFlag
                 )
             )
-            //TODO: Use App Icon as small icon
-            .setSmallIcon(R.drawable.texture)
+
+            .setSmallIcon(R.drawable.ic_splash)
             .setOngoing(true)
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)

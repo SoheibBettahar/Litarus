@@ -5,15 +5,19 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowBackground">@color/alabaster</item>
+        <item name="android:windowLightStatusBar" >true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
     </style>
 
 
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
         <item name="android:windowSplashScreenBackground" tools:targetApi="s">@color/alabaster</item>
         <item name="android:windowSplashScreenBehavior" tools:targetApi="tiramisu">icon_preferred</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/language_svg</item> <!--TODO: Change icon to logo -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
         <item name="postSplashScreenTheme">@style/Theme.Litarus</item>
         <item name="android:windowSplashScreenAnimationDuration" tools:targetApi="s">1000</item>
+        <item name="android:windowLightStatusBar" >true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
     </style>
 
 
