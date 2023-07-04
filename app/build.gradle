@@ -115,9 +115,6 @@ dependencies {
     //workmanager
     implementation "androidx.work:work-runtime-ktx:$work_version"
 
-    //accompanist-systemuicontroller (status bar manipulation from compose)
-    implementation "com.google.accompanist:accompanist-systemuicontroller:0.28.0"
-
     //Runtime permissions for compose
     implementation "com.google.accompanist:accompanist-permissions:0.29.0-alpha"
 

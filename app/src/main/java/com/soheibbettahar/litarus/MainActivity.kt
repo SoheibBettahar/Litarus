@@ -9,14 +9,12 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
@@ -26,7 +24,6 @@ import androidx.navigation.navArgument
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.soheibbettahar.litarus.Destination.*
 import com.soheibbettahar.litarus.download.DownloadReceiver
 import com.soheibbettahar.litarus.ui.screens.DetailScreen
@@ -87,18 +84,6 @@ class MainActivity : ComponentActivity() {
                 snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             ) { contentPadding ->
                 val navController = rememberAnimatedNavController()
-
-                //TODO: Bug, when oppening the app, systemBarColor is always light
-                val systemUiController = rememberSystemUiController()
-                val useDarkIcons = !isSystemInDarkTheme()
-
-                LaunchedEffect(systemUiController, useDarkIcons) {
-                    systemUiController.setSystemBarsColor(
-                        Color.Transparent,
-                        darkIcons = useDarkIcons
-                    )
-                }
-
 
                 LitarusNavHost(
                     Modifier
