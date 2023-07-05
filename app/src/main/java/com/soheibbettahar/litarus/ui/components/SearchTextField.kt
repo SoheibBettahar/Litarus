@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.soheibbettahar.litarus.R
@@ -65,7 +66,9 @@ fun SearchTextField(
         onValueChange = onTextChanged,
         placeholder = {
             Text(
-                text = "Search by Title, Author...", style = MaterialTheme.typography.body2
+                text = "Search by Title, Author...", style = MaterialTheme.typography.body2,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         },
         singleLine = true,
@@ -142,7 +145,7 @@ fun LanguageButton(isBadgeVisible: Boolean = false, onClick: () -> Unit = {}) {
                 modifier = Modifier
                     .size(42.dp)
                     .padding(bottom = 6.dp),
-                imageVector = ImageVector.vectorResource(id = R.drawable.language_svg),
+                imageVector = ImageVector.vectorResource(id = R.drawable.ic_language_letters),
                 contentDescription = "Choose Language Button"
             )
 

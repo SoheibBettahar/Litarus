@@ -256,7 +256,7 @@ fun BooksGrid(
     LazyVerticalGrid(
         state = gridState,
         modifier = modifier.withFadingEdgeEffect(),
-        columns = GridCells.Adaptive(minSize = 168.dp),
+        columns = GridCells.Adaptive(minSize = 132.dp),
         contentPadding = PaddingValues(top = 24.dp, bottom = 16.dp, start = 16.dp, end = 16.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp),
         horizontalArrangement = Arrangement.spacedBy(24.dp)
