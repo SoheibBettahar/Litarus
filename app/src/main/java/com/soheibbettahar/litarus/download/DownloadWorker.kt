@@ -90,7 +90,7 @@ class DownloadWorker @AssistedInject constructor(
                 )
             )
 
-            .setSmallIcon(R.drawable.ic_splash)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setOngoing(true)
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)

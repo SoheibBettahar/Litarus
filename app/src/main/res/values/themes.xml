@@ -13,7 +13,7 @@
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
         <item name="android:windowSplashScreenBackground" tools:targetApi="s">@color/alabaster</item>
         <item name="android:windowSplashScreenBehavior" tools:targetApi="tiramisu">icon_preferred</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_light</item>
         <item name="postSplashScreenTheme">@style/Theme.Litarus</item>
         <item name="android:windowSplashScreenAnimationDuration" tools:targetApi="s">1000</item>
         <item name="android:windowLightStatusBar" >true</item>
