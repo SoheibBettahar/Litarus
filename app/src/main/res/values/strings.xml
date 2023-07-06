@@ -1,11 +1,10 @@
 <resources>
-    <string name="app_name">Litarus</string>
-    <string name="flavor">Main</string>
+    <string name="app_name" translatable="false">Litarus</string>
     <string name="book_cover">Book Cover</string>
     <string name="download">Download</string>
     <string name="cancel">Cancel</string>
     <string name="details">Details</string>
-    <string name="more_button">More Button</string>
+    <string name="share_button">Share Button</string>
     <string name="back_button">Back Button</string>
     <string name="no_books_found">No books found.</string>
     <string name="retry">Retry</string>

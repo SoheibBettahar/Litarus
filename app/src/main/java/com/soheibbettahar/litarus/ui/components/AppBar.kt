@@ -52,7 +52,7 @@ fun AppBar(
 
         AppbarButton(
             icon = Icons.Default.Share,
-            contentDescription = stringResource(R.string.more_button),
+            contentDescription = stringResource(R.string.share_button),
             onClick = onSharePress
         )
     }
