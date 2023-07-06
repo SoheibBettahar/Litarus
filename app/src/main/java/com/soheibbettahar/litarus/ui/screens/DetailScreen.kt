@@ -58,7 +58,8 @@ fun DetailScreen(
     onBackPress: () -> Unit = {},
     onShowSnackbar: (String) -> Unit = {},
     onShowSnackbarWithSettingsAction: (text: String, action: String) -> Unit = { _, _ -> },
-    onSharePress: (Long) -> Unit = {}
+    onSharePress: (Long) -> Unit = {},
+    onRequestAppReview: () -> Unit = {}
 ) {
     val book: BookDetailUiState by viewModel.bookUiState.collectAsState()
     val loadResult = book.loadResult
@@ -76,13 +77,12 @@ fun DetailScreen(
     LaunchedEffect(key1 = downloadState.status) {
         val downloadStatus = downloadState.status
         if (downloadStatus is DownloadStatus.Successful || downloadStatus is DownloadStatus.Failed) {
-            val message =
-                if (downloadStatus is DownloadStatus.Successful) downloadSuccess
-                else when ((downloadStatus as DownloadStatus.Failed).error) {
-                    DownloadError.InsufficientSpaceError -> insufficientSpace
-                    DownloadError.HttpError -> internetUnavailable
-                    DownloadError.UnknownError -> unknownError
-                }
+            val message = if (downloadStatus is DownloadStatus.Successful) downloadSuccess
+            else when ((downloadStatus as DownloadStatus.Failed).error) {
+                DownloadError.InsufficientSpaceError -> insufficientSpace
+                DownloadError.HttpError -> internetUnavailable
+                DownloadError.UnknownError -> unknownError
+            }
 
             onShowSnackbar(message)
         }
@@ -99,44 +99,44 @@ fun DetailScreen(
             onBackPress = onBackPress,
             onSharePress = {
                 analyticsHelper.shareBook(bookId.toString(), bookTitle, bookAuthor)
-                onSharePress(bookId) }
+                onSharePress(bookId)
+            }
         )
 
 
-            Box(modifier = Modifier.fillMaxSize()) {
-                if (loadResult is Result.Success) {
-                    BookDetails(
-                        modifier = Modifier.fillMaxSize(),
-                        book = loadResult.data,
-                        downloadStatus = downloadState.status,
-                        downloadProgress = downloadState.progress,
-                        onDownloadClick = {
-                            if (isOnline) viewModel.downloadBook(it)
-                            else onShowSnackbar(internetUnavailable)
-                        },
-                        onCancelDownload = viewModel::cancelDownload,
-                        onShowSnackbarWithSettingsAction = onShowSnackbarWithSettingsAction
-                    )
-                }
-
-
-                if (loadResult is Result.Loading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(
-                            Alignment.Center
-                        )
-                    )
-                }
-
-                if (loadResult is Result.Error) {
-                    ErrorLayout(
-                        modifier = Modifier.align(Alignment.Center),
-                        error = loadResult.exception,
-                        onRetryClick = { viewModel.getBook() }
-                    )
-                }
-
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (loadResult is Result.Success) {
+                BookDetails(
+                    modifier = Modifier.fillMaxSize(),
+                    book = loadResult.data,
+                    downloadStatus = downloadState.status,
+                    downloadProgress = downloadState.progress,
+                    onDownloadClick = {
+                        if (isOnline) viewModel.downloadBook(it)
+                        else onShowSnackbar(internetUnavailable)
+                    },
+                    onCancelDownload = viewModel::cancelDownload,
+                    onShowSnackbarWithSettingsAction = onShowSnackbarWithSettingsAction
+                )
             }
+
+
+            if (loadResult is Result.Loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(
+                        Alignment.Center
+                    )
+                )
+            }
+
+            if (loadResult is Result.Error) {
+                ErrorLayout(modifier = Modifier.align(Alignment.Center),
+                    error = loadResult.exception,
+                    onRetryClick = { viewModel.getBook() }
+                )
+            }
+
+        }
     }
 
     TrackScreenViewEvent(screenName = "Detail")
@@ -161,9 +161,9 @@ fun BookDetails(
     val storagePermissionState =
         rememberPermissionState(permission = Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
-    val storagePermissionResultLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { isGranted -> if (isGranted) onDownloadClick(book) })
+    val storagePermissionResultLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission(),
+            onResult = { isGranted -> if (isGranted) onDownloadClick(book) })
 
     val storagePermissionRequired = stringResource(R.string.storage_permission_required)
     val goToSettings = stringResource(R.string.go_to_settings)
@@ -214,17 +214,14 @@ fun BookDetails(
 
         AnimatedVisibility(visible = isDownloadProgressVisible) {
             DownloadProgressIndicator(
-                downloadStatus = downloadStatus,
-                downloadProgress = downloadProgress
+                downloadStatus = downloadStatus, downloadProgress = downloadProgress
             )
         }
 
         Spacer(modifier = Modifier.height(14.dp))
 
         DownloadButton(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            book = book,
-            onDownloadClick = {
+            modifier = Modifier.padding(horizontal = 16.dp), book = book, onDownloadClick = {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q || storagePermissionState.status == PermissionStatus.Granted) {
                     onDownloadClick(it)
                 } else if (storagePermissionState.status.shouldShowRationale) {
@@ -233,8 +230,7 @@ fun BookDetails(
                     storagePermissionResultLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 }
 
-            },
-            onCancelDownloadClick = onCancelDownload
+            }, onCancelDownloadClick = onCancelDownload
         )
 
         Spacer(Modifier.height(2.dp))
@@ -263,9 +259,7 @@ fun BookDetails(
 
 @Composable
 fun DownloadProgressIndicator(
-    modifier: Modifier = Modifier,
-    downloadStatus: DownloadStatus,
-    downloadProgress: Float
+    modifier: Modifier = Modifier, downloadStatus: DownloadStatus, downloadProgress: Float
 ) {
     val localModifier = modifier
         .fillMaxWidth()
@@ -275,27 +269,19 @@ fun DownloadProgressIndicator(
 
     val progress: Float by animateFloatAsState(targetValue = downloadProgress)
 
-    if (downloadStatus == DownloadStatus.Pending)
-        LinearProgressIndicator(
-            modifier = localModifier,
-            color = color,
-            strokeCap = strokeCap
-        )
-    else
-        LinearProgressIndicator(
-            progress = progress,
-            modifier = localModifier,
-            color = color,
-            strokeCap = strokeCap
-        )
+    if (downloadStatus == DownloadStatus.Pending) LinearProgressIndicator(
+        modifier = localModifier, color = color, strokeCap = strokeCap
+    )
+    else LinearProgressIndicator(
+        progress = progress, modifier = localModifier, color = color, strokeCap = strokeCap
+    )
 }
 
 @Preview
 @Composable
 fun DownloadProgressIndicatorPreview() {
     DownloadProgressIndicator(
-        downloadStatus = DownloadStatus.Pending,
-        downloadProgress = 0f
+        downloadStatus = DownloadStatus.Pending, downloadProgress = 0f
     )
 
 }
@@ -324,8 +310,7 @@ fun DownloadButton(
     Button(
         modifier = modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(
             backgroundColor = MaterialTheme.colors.secondary
-        ), onClick = onClick,
-        shape = RoundedCornerShape(12.dp)
+        ), onClick = onClick, shape = RoundedCornerShape(12.dp)
     ) {
         AnimatedContent(targetState = buttonLabel) { label ->
             Text(text = label, style = MaterialTheme.typography.body1)
@@ -386,12 +371,15 @@ fun BookDetailsPreview() {
 @Composable
 fun BookInfo(modifier: Modifier = Modifier, book: BookWithExtras) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        if(book.languages.isNotEmpty()){
-            InfoCell(text = book.languages, icon = ImageVector.vectorResource(id = R.drawable.ic_language))
+        if (book.languages.isNotEmpty()) {
+            InfoCell(
+                text = book.languages,
+                icon = ImageVector.vectorResource(id = R.drawable.ic_language)
+            )
             Spacer(modifier = Modifier.width(17.dp))
         }
 
-        if(book.pageCount > 0){
+        if (book.pageCount > 0) {
             InfoCell(
                 text = book.pageCount.toString(),
                 icon = ImageVector.vectorResource(id = R.drawable.ic_page_count)
@@ -399,7 +387,7 @@ fun BookInfo(modifier: Modifier = Modifier, book: BookWithExtras) {
             Spacer(modifier = Modifier.width(17.dp))
         }
 
-        if(book.downloadCount > -1){
+        if (book.downloadCount > -1) {
             InfoCell(
                 text = book.downloadCount.toString(),
                 icon = ImageVector.vectorResource(id = R.drawable.ic_download_count)

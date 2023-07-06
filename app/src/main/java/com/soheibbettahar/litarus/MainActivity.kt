@@ -24,6 +24,7 @@ import androidx.navigation.navArgument
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import com.google.android.play.core.review.ReviewManagerFactory
 import com.soheibbettahar.litarus.Destination.*
 import com.soheibbettahar.litarus.download.DownloadReceiver
 import com.soheibbettahar.litarus.ui.screens.DetailScreen
@@ -119,7 +120,8 @@ class MainActivity : ComponentActivity() {
         modifier: Modifier,
         navController: NavHostController,
         onShowSnackBar: (String) -> Unit = {},
-        onShowSnackbarWithSettingsAction: (String, String) -> Unit
+        onShowSnackbarWithSettingsAction: (String, String) -> Unit,
+        onRequestAppReview: () -> Unit = {}
     ) {
         AnimatedNavHost(
             modifier = modifier,
@@ -152,7 +154,7 @@ class MainActivity : ComponentActivity() {
                         )
                         val chooser = Intent.createChooser(
                             intent,
-                            context.getString(com.soheibbettahar.litarus.R.string.share_book)
+                            context.getString(R.string.share_book)
                         )
                         context.startActivity(chooser)
 
@@ -167,6 +169,16 @@ class MainActivity : ComponentActivity() {
         saveState()
         restoreState = true
         launchSingleTop = true
+    }
+
+
+    private fun showReviewDialog(){
+        val reviewManager = ReviewManagerFactory.create(this)
+        reviewManager.requestReviewFlow().addOnCompleteListener {
+            if(it.isSuccessful)
+                reviewManager.launchReviewFlow(this, it.result)
+        }
+
     }
 
 }
