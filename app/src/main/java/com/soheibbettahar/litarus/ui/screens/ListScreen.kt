@@ -267,13 +267,17 @@ fun BooksGrid(
             key = { index -> books[index]?.id ?: -1 },
             contentType = { BOOK_ITEM_CONTENT_TYPE }) { index ->
             val book = books[index]
-            book?.let {
+
+            if (book != null)
                 BookItem(
                     modifier = Modifier.animateItemPlacement(tween(500)),
                     book = book,
                     onItemClick = onBookItemClick
                 )
-            }
+            else
+                BookItemPlaceHolder()
+
+
         }
 
         if (isAppendLoading || isAppendError) {

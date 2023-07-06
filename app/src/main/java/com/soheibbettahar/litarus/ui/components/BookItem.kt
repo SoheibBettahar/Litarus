@@ -11,11 +11,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.google.accompanist.placeholder.PlaceholderHighlight
+import com.google.accompanist.placeholder.material.fade
+import com.google.accompanist.placeholder.material.placeholder
 import com.soheibbettahar.litarus.data.repository.model.Book
 import com.soheibbettahar.litarus.util.DEFAULT_BOOK
 
 private const val TAG = "BookItem"
-
 
 
 @Composable
@@ -76,4 +78,34 @@ private fun BookItemPreview() {
     BookItem(
         book = DEFAULT_BOOK
     )
+}
+
+
+@Composable
+fun BookItemPlaceHolder(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .wrapContentSize()
+    ) {
+
+        Box(
+            modifier = Modifier.placeholder(true,highlight = PlaceholderHighlight.fade())
+                .size(height = 235.dp, width = 160.dp)
+                .clip(MaterialTheme.shapes.medium),
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Box(modifier = Modifier.size(160.dp, height = 20.dp).placeholder(true,highlight = PlaceholderHighlight.fade()))
+
+        Spacer(modifier = Modifier.height(2.dp))
+
+        Box(modifier = Modifier.size(100.dp, height = 18.dp).placeholder(true,highlight = PlaceholderHighlight.fade()))
+    }
+}
+
+@Preview
+@Composable
+fun BookItemPlaceHolderPreview() {
+    BookItemPlaceHolder()
 }
