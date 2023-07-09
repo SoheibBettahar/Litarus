@@ -20,7 +20,7 @@ object DatabaseModule {
     fun provideLitarusDatabase(@ApplicationContext context: Context): LitarusDatabase {
         return Room.databaseBuilder(
             context.applicationContext,
-            LitarusDatabase::class.java, "Litarus.db"
+            LitarusDatabase::class.java, "litarus.db"
         ).build()
 
     }
