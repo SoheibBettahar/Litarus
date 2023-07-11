@@ -19,7 +19,6 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -29,7 +28,6 @@ import com.soheibbettahar.litarus.ui.TrackScreenViewEvent
 import com.soheibbettahar.litarus.ui.components.*
 import com.soheibbettahar.litarus.ui.openBook
 import com.soheibbettahar.litarus.ui.util.*
-import com.soheibbettahar.litarus.ui.viewmodels.BooksViewModel
 import com.soheibbettahar.litarus.util.DEFAULT_BOOK_LIST
 import com.soheibbettahar.litarus.util.DEFAULT_CATEGORIES
 import com.soheibbettahar.litarus.util.analytics.LocalAnalyticsHelper
@@ -43,15 +41,16 @@ private const val TAG = "ListScreen"
 
 @Composable
 fun ListScreen(
-    viewModel: BooksViewModel = hiltViewModel(),
+    searchTerm: String,
+    selectedCategory: String,
+    language: Language,
+    lazyPagedItems: LazyPagingItems<Book>,
+    onUpdateSearchTerm: (String) -> Unit,
+    onUpdateCategory: (String) -> Unit,
+    onUpdateLanguage: (Language) -> Unit,
     onBookItemClick: (id: Long, title: String, author: String?) -> Unit = { _, _, _ -> },
     onShowSnackbar: (String) -> Unit = {}
 ) {
-
-    val searchTerm = viewModel.searchTerm
-    val selectedCategory = viewModel.category
-    val language = viewModel.language
-    val lazyPagedItems = viewModel.searchedBooksPagingDataFlow.collectAsLazyPagingItems()
 
     val scrollState = rememberLazyGridState()
     LaunchedEffect(lazyPagedItems) {
@@ -90,7 +89,7 @@ fun ListScreen(
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
             searchText = searchTerm,
             selectedLanguage = language,
-            onTextChanged = { viewModel.updateSearchTerm(it) },
+            onTextChanged = onUpdateSearchTerm,
             onLanguageButtonClick = { isLanguageDialogVisible = true }
         )
 
@@ -99,9 +98,7 @@ fun ListScreen(
             modifier = Modifier.padding(top = 16.dp),
             categories = DEFAULT_CATEGORIES.keys.toList(),
             selectedCategory = selectedCategory
-        ) { category ->
-            viewModel.updateCategory(DEFAULT_CATEGORIES[category]!!)
-        }
+        ) { category -> onUpdateCategory(DEFAULT_CATEGORIES[category]!!) }
 
         Box(modifier = Modifier.fillMaxSize()) {
 
@@ -136,7 +133,7 @@ fun ListScreen(
             if (isLanguageDialogVisible) {
                 LanguageDialog(
                     selectedLanguage = language,
-                    onItemClick = { viewModel.updateLanguage(it) },
+                    onItemClick = onUpdateLanguage,
                     dismiss = { isLanguageDialogVisible = false }
                 )
             }

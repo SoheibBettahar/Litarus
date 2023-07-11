@@ -1,6 +1,7 @@
 package com.soheibbettahar.litarus
 
 import android.app.DownloadManager
+import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
@@ -18,17 +19,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
-import androidx.navigation.NavHostController
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
+import androidx.navigation.*
 import com.google.accompanist.navigation.animation.AnimatedNavHost
-import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.google.android.play.core.review.ReviewManagerFactory
-import com.soheibbettahar.litarus.Destination.*
 import com.soheibbettahar.litarus.download.DownloadReceiver
-import com.soheibbettahar.litarus.ui.screens.DetailScreen
-import com.soheibbettahar.litarus.ui.screens.ListScreen
+import com.soheibbettahar.litarus.navigation.BooksListRoute
+import com.soheibbettahar.litarus.navigation.bookDetailScreen
+import com.soheibbettahar.litarus.navigation.booksListScreen
+import com.soheibbettahar.litarus.navigation.navigateToBookDetail
 import com.soheibbettahar.litarus.ui.theme.LitarusTheme
 import com.soheibbettahar.litarus.util.GUTTENBURG_URL
 import com.soheibbettahar.litarus.util.analytics.AnalyticsHelper
@@ -95,7 +94,8 @@ class MainActivity : ComponentActivity() {
                                 message
                             )
                         }
-                    }, onShowSnackbarWithSettingsAction = { message, action ->
+                    },
+                    onShowSnackbarWithSettingsAction = { message, action ->
                         coroutineScope.launch {
                             val result = snackbarHostState.showSnackbar(message, action)
 
@@ -107,7 +107,10 @@ class MainActivity : ComponentActivity() {
                                 startActivity(intent)
                             }
                         }
-                    })
+                    },
+                    onShareBookClick = { id -> shareBookDownloadLink(context, id) },
+                    onRequestAppReview = ::showReviewDialog
+                )
             }
 
         }
@@ -121,64 +124,60 @@ class MainActivity : ComponentActivity() {
         navController: NavHostController,
         onShowSnackBar: (String) -> Unit = {},
         onShowSnackbarWithSettingsAction: (String, String) -> Unit,
+        onShareBookClick: (Long) -> Unit,
         onRequestAppReview: () -> Unit = {}
     ) {
+
         AnimatedNavHost(
             modifier = modifier,
             navController = navController,
-            startDestination = BooksList.route
+            startDestination = BooksListRoute
         ) {
-            composable(BooksList.route) {
-                ListScreen(onBookItemClick = { id, title, author ->
-                    val route = "${BookDetail.route}/$id/$title?author={$author}"
-                    navController.navigateSingleTopTo(route)
-                }, onShowSnackbar = onShowSnackBar)
-            }
 
-            composable(
-                route = "${BookDetail.route}/{id}/{title}?author={author}",
-                arguments = listOf(navArgument("id") { type = NavType.LongType },
-                    navArgument("title") { type = NavType.StringType },
-                    navArgument("author") { type = NavType.StringType; nullable = true })
-            ) {
-                val context = LocalContext.current
-                DetailScreen(
-                    onBackPress = { navController.navigateUp() },
-                    onShowSnackbar = onShowSnackBar,
-                    onShowSnackbarWithSettingsAction = onShowSnackbarWithSettingsAction,
-                    onSharePress = { id ->
-                        val intent = Intent(Intent.ACTION_SEND)
-                        intent.type = "text/plain"
-                        intent.putExtra(
-                            Intent.EXTRA_TEXT, "$GUTTENBURG_URL${id}"
-                        )
-                        val chooser = Intent.createChooser(
-                            intent,
-                            context.getString(R.string.share_book)
-                        )
-                        context.startActivity(chooser)
+            booksListScreen(
+                ontNavigateToBookDetailScreen = { id, title, author ->
+                    navController.navigateToBookDetail(
+                        id,
+                        title,
+                        author
+                    )
+                },
+                onShowSnackbar = onShowSnackBar
+            )
 
-                    }
-                )
-            }
+            bookDetailScreen(
+                onBackPress = { navController.navigateUp() },
+                onShowSnackbar = onShowSnackBar,
+                onShowSnackbarWithSettingsAction = onShowSnackbarWithSettingsAction,
+                onShareBookClick = onShareBookClick,
+                onRequestAppReview = onRequestAppReview
+            )
+
         }
     }
 
 
-    private fun NavHostController.navigateSingleTopTo(route: String) = navigate(route) {
-        saveState()
-        restoreState = true
-        launchSingleTop = true
-    }
 
-
-    private fun showReviewDialog(){
+    private fun showReviewDialog() {
         val reviewManager = ReviewManagerFactory.create(this)
         reviewManager.requestReviewFlow().addOnCompleteListener {
-            if(it.isSuccessful)
+            if (it.isSuccessful)
                 reviewManager.launchReviewFlow(this, it.result)
         }
 
+    }
+
+    private fun shareBookDownloadLink(context: Context, id: Long) {
+        val intent = Intent(Intent.ACTION_SEND)
+        intent.type = "text/plain"
+        intent.putExtra(
+            Intent.EXTRA_TEXT, "$GUTTENBURG_URL${id}"
+        )
+        val chooser = Intent.createChooser(
+            intent,
+            context.getString(R.string.share_book)
+        )
+        context.startActivity(chooser)
     }
 
 }

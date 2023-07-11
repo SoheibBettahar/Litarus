@@ -8,6 +8,7 @@ import com.soheibbettahar.litarus.data.Result
 import com.soheibbettahar.litarus.data.repository.model.BookWithExtras
 import com.soheibbettahar.litarus.data.repository.BooksRepository
 import com.soheibbettahar.litarus.download.DownloadStatus
+import com.soheibbettahar.litarus.navigation.BookDetailArgs
 import com.soheibbettahar.litarus.util.connectivity.NetworkMonitor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -36,9 +37,10 @@ class BookDetailViewModel @Inject constructor(
 ) :
     ViewModel() {
 
-    val id: Long = savedStateHandle["id"] ?: -1
-    val title: String = savedStateHandle["title"] ?: ""
-    val author: String = savedStateHandle["author"] ?: ""
+    private val args = BookDetailArgs(savedStateHandle)
+    val id: Long = args.id
+    val title: String = args.title
+    val author: String = args.author
 
     private val _bookUiState = MutableStateFlow(BookDetailUiState())
     val bookUiState: StateFlow<BookDetailUiState>

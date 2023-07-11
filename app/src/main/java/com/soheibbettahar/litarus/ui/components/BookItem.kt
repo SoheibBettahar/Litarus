@@ -89,18 +89,27 @@ fun BookItemPlaceHolder(modifier: Modifier = Modifier) {
     ) {
 
         Box(
-            modifier = Modifier.placeholder(true,highlight = PlaceholderHighlight.fade())
+            modifier = Modifier
+                .placeholder(true, highlight = PlaceholderHighlight.fade())
                 .size(height = 235.dp, width = 160.dp)
                 .clip(MaterialTheme.shapes.medium),
         )
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        Box(modifier = Modifier.size(160.dp, height = 20.dp).placeholder(true,highlight = PlaceholderHighlight.fade()))
+        Box(
+            modifier = Modifier
+                .size(160.dp, height = 20.dp)
+                .placeholder(true, highlight = PlaceholderHighlight.fade())
+        )
 
         Spacer(modifier = Modifier.height(2.dp))
 
-        Box(modifier = Modifier.size(100.dp, height = 18.dp).placeholder(true,highlight = PlaceholderHighlight.fade()))
+        Box(
+            modifier = Modifier
+                .size(100.dp, height = 18.dp)
+                .placeholder(true, highlight = PlaceholderHighlight.fade())
+        )
     }
 }
 

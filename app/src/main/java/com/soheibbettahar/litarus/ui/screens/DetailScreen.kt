@@ -26,48 +26,49 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionStatus
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import com.soheibbettahar.litarus.R
 import com.soheibbettahar.litarus.data.Result
 import com.soheibbettahar.litarus.data.repository.model.BookWithExtras
 import com.soheibbettahar.litarus.download.DownloadError
 import com.soheibbettahar.litarus.download.DownloadStatus
+import com.soheibbettahar.litarus.ui.TrackScreenViewEvent
 import com.soheibbettahar.litarus.ui.components.AppBar
 import com.soheibbettahar.litarus.ui.components.BookCover
 import com.soheibbettahar.litarus.ui.components.ErrorLayout
+import com.soheibbettahar.litarus.ui.shareBook
 import com.soheibbettahar.litarus.ui.theme.LitarusTheme
 import com.soheibbettahar.litarus.ui.util.withFadingEdgeEffect
 import com.soheibbettahar.litarus.ui.viewmodels.BookDetailUiState
-import com.soheibbettahar.litarus.ui.viewmodels.BookDetailViewModel
 import com.soheibbettahar.litarus.ui.viewmodels.DownloadState
 import com.soheibbettahar.litarus.util.DEFAULT_BOOK_WITH_EXTRAS
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionStatus
-import com.google.accompanist.permissions.rememberPermissionState
-import com.google.accompanist.permissions.shouldShowRationale
-import com.soheibbettahar.litarus.ui.TrackScreenViewEvent
-import com.soheibbettahar.litarus.ui.shareBook
 import com.soheibbettahar.litarus.util.analytics.LocalAnalyticsHelper
 
 private const val TAG = "DetailScreen"
 
 @Composable
 fun DetailScreen(
-    viewModel: BookDetailViewModel = hiltViewModel(),
+    bookUiState: BookDetailUiState,
+    downloadState: DownloadState,
+    bookId: Long,
+    bookTitle: String,
+    bookAuthor: String,
+    isOnline: Boolean,
+    onDownloadClick: (BookWithExtras) -> Unit,
+    onCancelDownloadClick: (BookWithExtras) -> Unit,
+    getBookDetails: () -> Unit,
     onBackPress: () -> Unit = {},
     onShowSnackbar: (String) -> Unit = {},
     onShowSnackbarWithSettingsAction: (text: String, action: String) -> Unit = { _, _ -> },
     onSharePress: (Long) -> Unit = {},
-    onRequestAppReview: () -> Unit = {}
+    onRequestAppReview: () -> Unit = { //TODO: call it somewhere when you figure out the logic
+        }
 ) {
-    val book: BookDetailUiState by viewModel.bookUiState.collectAsState()
-    val loadResult = book.loadResult
-    val downloadState: DownloadState by viewModel.downloadState.collectAsStateWithLifecycle()
-    val bookId = viewModel.id
-    val bookTitle = viewModel.title
-    val bookAuthor = viewModel.author
-    val isOnline: Boolean by viewModel.isOnline.collectAsStateWithLifecycle()
+
+    val loadResult = bookUiState.loadResult
 
     val downloadSuccess = stringResource(R.string.check_mark_download_success)
     val insufficientSpace = stringResource(R.string.close_mark_insufficient_space)
@@ -112,10 +113,10 @@ fun DetailScreen(
                     downloadStatus = downloadState.status,
                     downloadProgress = downloadState.progress,
                     onDownloadClick = {
-                        if (isOnline) viewModel.downloadBook(it)
+                        if (isOnline) onDownloadClick(it)
                         else onShowSnackbar(internetUnavailable)
                     },
-                    onCancelDownload = viewModel::cancelDownload,
+                    onCancelDownload = onCancelDownloadClick,
                     onShowSnackbarWithSettingsAction = onShowSnackbarWithSettingsAction
                 )
             }
@@ -132,7 +133,7 @@ fun DetailScreen(
             if (loadResult is Result.Error) {
                 ErrorLayout(modifier = Modifier.align(Alignment.Center),
                     error = loadResult.exception,
-                    onRetryClick = { viewModel.getBook() }
+                    onRetryClick = getBookDetails
                 )
             }
 
