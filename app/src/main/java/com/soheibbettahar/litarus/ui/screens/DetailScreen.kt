@@ -65,7 +65,7 @@ fun DetailScreen(
     onShowSnackbarWithSettingsAction: (text: String, action: String) -> Unit = { _, _ -> },
     onSharePress: (Long) -> Unit = {},
     onRequestAppReview: () -> Unit = { //TODO: call it somewhere when you figure out the logic
-        }
+    }
 ) {
 
     val loadResult = bookUiState.loadResult
@@ -131,7 +131,8 @@ fun DetailScreen(
             }
 
             if (loadResult is Result.Error) {
-                ErrorLayout(modifier = Modifier.align(Alignment.Center),
+                ErrorLayout(
+                    modifier = Modifier.align(Alignment.Center),
                     error = loadResult.exception,
                     onRetryClick = getBookDetails
                 )
@@ -219,23 +220,26 @@ fun BookDetails(
             )
         }
 
-        Spacer(modifier = Modifier.height(14.dp))
 
-        DownloadButton(
-            modifier = Modifier.padding(horizontal = 16.dp), book = book, onDownloadClick = {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q || storagePermissionState.status == PermissionStatus.Granted) {
-                    onDownloadClick(it)
-                } else if (storagePermissionState.status.shouldShowRationale) {
-                    onShowSnackbarWithSettingsAction(storagePermissionRequired, goToSettings)
-                } else {
-                    storagePermissionResultLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                }
+        if (book.downloadUrl != null) {
 
-            }, onCancelDownloadClick = onCancelDownload
-        )
+            Spacer(modifier = Modifier.height(14.dp))
+
+            DownloadButton(
+                modifier = Modifier.padding(horizontal = 16.dp), book = book, onDownloadClick = {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q || storagePermissionState.status == PermissionStatus.Granted) {
+                        onDownloadClick(it)
+                    } else if (storagePermissionState.status.shouldShowRationale) {
+                        onShowSnackbarWithSettingsAction(storagePermissionRequired, goToSettings)
+                    } else {
+                        storagePermissionResultLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    }
+
+                }, onCancelDownloadClick = onCancelDownload
+            )
+        }
 
         Spacer(Modifier.height(2.dp))
-
 
         DownloadSuccessIndicator(isVisible = isDownloadSuccessIndicatorVisible)
 
