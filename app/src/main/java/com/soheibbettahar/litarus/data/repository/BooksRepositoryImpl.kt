@@ -1,8 +1,6 @@
 package com.soheibbettahar.litarus.data.repository
 
-import android.util.Log
 import androidx.paging.*
-import com.soheibbettahar.litarus.data.GetAllBooksRemoteMediator
 import com.soheibbettahar.litarus.data.SearchBooksRemoteMediator
 import com.soheibbettahar.litarus.data.database.BooksLocalDataSource
 import com.soheibbettahar.litarus.data.database.detail.DatabaseBookWithExtras
@@ -17,7 +15,6 @@ import com.soheibbettahar.litarus.download.Downloader
 import com.soheibbettahar.litarus.util.analytics.AnalyticsHelper
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -82,27 +79,22 @@ class BooksRepositoryImpl @Inject constructor(
 
     override suspend fun fetchBookWithExtras(id: Long, title: String, author: String) =
         withContext(dispatcherIO) {
-            coroutineScope {
-                val book = async { remoteDataSource.getBook(id) }
-                val bookExtras = async {
-                    remoteDataSource.getBookExtras(
-                        title,
-                        author
-                    ).items.firstOrNull()?.bookInfo
-                }
-
-                val bookPlaceHolder = book.await()
-                val bookWithExtrasPlaceHolder = bookExtras.await()
-
-                val databaseBookWithExtras =
-                    DatabaseBookWithExtras.from(bookPlaceHolder, bookWithExtrasPlaceHolder)
-                booksLocalDataSource.insertBookWithExtras(databaseBookWithExtras)
+            val book = async { remoteDataSource.getBook(id) }
+            val bookExtras = async {
+                remoteDataSource.getBookExtras(
+                    title,
+                    author
+                ).items.firstOrNull()?.bookInfo
             }
+
+            val databaseBookWithExtras =
+                DatabaseBookWithExtras.from(book.await(), bookExtras.await())
+
+            booksLocalDataSource.insertBookWithExtras(databaseBookWithExtras)
         }
 
 
     override fun getBookWithExtras(id: Long) = booksLocalDataSource.getBookWithExtras(id)
-
         .map(DatabaseBookWithExtras::asExternalModel)
         .flowOn(dispatcherIO)
 
@@ -148,10 +140,8 @@ class BooksRepositoryImpl @Inject constructor(
 
     override suspend fun removeFileUriFromBook(book: BookWithExtras) {
         withContext(dispatcherIO) {
-            withContext(dispatcherIO) {
-                val databaseBook = booksLocalDataSource.getBookWithExtrasById(book.id)!!
-                booksLocalDataSource.updateBookWithExtras(databaseBook.copy(fileUriString = null))
-            }
+            val databaseBook = booksLocalDataSource.getBookWithExtrasById(book.id)!!
+            booksLocalDataSource.updateBookWithExtras(databaseBook.copy(fileUriString = null))
         }
     }
 
