@@ -40,24 +40,6 @@ class BooksRepositoryImpl @Inject constructor(
 
 
     @OptIn(ExperimentalPagingApi::class)
-    override fun getBooks(): Flow<PagingData<Book>> {
-        val pagingSourceFactory = { booksLocalDataSource.getAllBooks() }
-
-
-        return Pager(
-            config = PagingConfig(
-                pageSize = NETWORK_BOOKS_PAGE_SIZE,
-                enablePlaceholders = false
-            ),
-            remoteMediator = GetAllBooksRemoteMediator(remoteDataSource, booksLocalDataSource),
-            pagingSourceFactory = pagingSourceFactory,
-
-            ).flow
-            .map { pagingData -> pagingData.map(DatabaseBook::asExternalModel) }
-            .flowOn(dispatcherIO)
-    }
-
-    @OptIn(ExperimentalPagingApi::class)
     override fun searchBooks(
         searchText: String,
         category: String,

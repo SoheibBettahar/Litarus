@@ -1,12 +1,11 @@
 package com.soheibbettahar.litarus.ui.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.soheibbettahar.litarus.data.Result
-import com.soheibbettahar.litarus.data.repository.model.BookWithExtras
 import com.soheibbettahar.litarus.data.repository.BooksRepository
+import com.soheibbettahar.litarus.data.repository.model.BookWithExtras
 import com.soheibbettahar.litarus.download.DownloadStatus
 import com.soheibbettahar.litarus.navigation.BookDetailArgs
 import com.soheibbettahar.litarus.util.connectivity.NetworkMonitor

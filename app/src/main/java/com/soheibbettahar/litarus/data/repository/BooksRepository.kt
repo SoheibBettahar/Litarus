@@ -10,8 +10,6 @@ import kotlinx.coroutines.flow.Flow
 interface BooksRepository {
     fun searchBooks(searchText: String, category: String, languages: List<String>): Flow<PagingData<Book>>
 
-    fun getBooks(): Flow<PagingData<Book>>
-
     suspend fun downloadBook(book: BookWithExtras)
 
      suspend fun fetchBookWithExtras(

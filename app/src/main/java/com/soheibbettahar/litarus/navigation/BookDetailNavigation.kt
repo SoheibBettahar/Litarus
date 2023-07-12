@@ -79,6 +79,6 @@ internal class BookDetailArgs private constructor(
             this(
                 checkNotNull(savedStateHandle[idArg]) as Long,
                 checkNotNull(savedStateHandle[titleArg]) as String,
-                savedStateHandle.get<String>(authorArg) ?: ""
+                savedStateHandle.get<String>(authorArg).orEmpty()
             )
 }
