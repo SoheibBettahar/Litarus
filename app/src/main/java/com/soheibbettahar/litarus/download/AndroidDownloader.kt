@@ -44,10 +44,7 @@ class AndroidDownloader @Inject constructor(@ApplicationContext val context: Con
             )
         }
 
-        val downloadId = downloadManager.enqueue(request)
-
-
-        return downloadId
+        return  downloadManager.enqueue(request)
     }
 
     override fun cancelDownload(downloadId: Long) {
