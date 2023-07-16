@@ -15,6 +15,9 @@ import com.soheibbettahar.litarus.ui.screens.DetailScreen
 import com.soheibbettahar.litarus.ui.viewmodels.BookDetailUiState
 import com.soheibbettahar.litarus.ui.viewmodels.BookDetailViewModel
 import com.soheibbettahar.litarus.ui.viewmodels.DownloadState
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 const val BookDetailRoute = "BooksDetail"
 
@@ -61,7 +64,9 @@ fun NavGraphBuilder.bookDetailScreen(
 
 
 fun NavHostController.navigateToBookDetail(id: Long, title: String, author: String?) {
-    val route = "$BookDetailRoute/$id/$title?author={$author}"
+    val encodedTitle = title.encodeUTF8()
+    val encodedAuthor = author?.encodeUTF8()
+    val route = "$BookDetailRoute/$id/$encodedTitle?author={$encodedAuthor}"
     navigateSingleTopTo(route)
 }
 
@@ -78,7 +83,11 @@ internal class BookDetailArgs private constructor(
     constructor(savedStateHandle: SavedStateHandle) :
             this(
                 checkNotNull(savedStateHandle[idArg]) as Long,
-                checkNotNull(savedStateHandle[titleArg]) as String,
-                savedStateHandle.get<String>(authorArg).orEmpty()
+                (checkNotNull(savedStateHandle[titleArg]) as String).decodeUTF8(),
+                savedStateHandle.get<String>(authorArg)?.decodeUTF8().orEmpty()
             )
 }
+
+private fun String.encodeUTF8() = URLEncoder.encode(this, StandardCharsets.UTF_8.toString())
+
+private fun String.decodeUTF8() = URLDecoder.decode(this, StandardCharsets.UTF_8.toString())
