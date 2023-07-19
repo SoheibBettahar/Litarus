@@ -27,6 +27,7 @@ import com.soheibbettahar.litarus.data.repository.model.Book
 import com.soheibbettahar.litarus.ui.TrackScreenViewEvent
 import com.soheibbettahar.litarus.ui.components.*
 import com.soheibbettahar.litarus.ui.openBook
+import com.soheibbettahar.litarus.ui.theme.LitarusTheme
 import com.soheibbettahar.litarus.ui.util.*
 import com.soheibbettahar.litarus.util.DEFAULT_BOOK_LIST
 import com.soheibbettahar.litarus.util.DEFAULT_CATEGORIES
@@ -146,62 +147,6 @@ fun ListScreen(
 
 
 @Composable
-fun AppendStateLayout(
-    modifier: Modifier = Modifier, isLoading: Boolean, isError: Boolean, retry: () -> Unit = {}
-) {
-    Box(
-        modifier = modifier.fillMaxWidth()
-    ) {
-        if (isLoading) CircularProgressIndicator(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(vertical = 12.dp)
-                .size(24.dp),
-            strokeWidth = 2.dp,
-
-            )
-
-        if (isError) {
-            IconButton(modifier = Modifier.align(Alignment.Center), onClick = retry) {
-                Icon(
-                    modifier = Modifier.size(28.dp),
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = "Refresh"
-                )
-            }
-        }
-
-    }
-}
-
-
-@Preview
-@Composable
-fun AppendStateLayoutPreview() {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start
-    ) {
-        AppendStateLayout(
-            modifier = Modifier
-                .background(Color.Green)
-                .weight(1f),
-            isLoading = true,
-            isError = false
-        )
-
-
-        AppendStateLayout(
-            modifier = Modifier
-                .background(Color.Red)
-                .weight(1f), isLoading = false, isError = true
-        )
-    }
-
-}
-
-
-@Composable
 fun Categories(
     modifier: Modifier = Modifier,
     categories: List<String>,
@@ -293,10 +238,69 @@ fun BooksGrid(
 @Preview
 @Composable
 private fun BooksGridPreview() {
-    BooksGrid(
-        modifier = Modifier.fillMaxSize(),
-        books = flowOf(PagingData.from(DEFAULT_BOOK_LIST)).collectAsLazyPagingItems(),
-        isAppendLoading = false,
-        isAppendError = false
-    )
+    LitarusTheme() {
+        BooksGrid(
+            modifier = Modifier.fillMaxSize(),
+            books = flowOf(PagingData.from(DEFAULT_BOOK_LIST)).collectAsLazyPagingItems(),
+            isAppendLoading = false,
+            isAppendError = false
+        )
+    }
+
+}
+
+
+@Composable
+fun AppendStateLayout(
+    modifier: Modifier = Modifier, isLoading: Boolean, isError: Boolean, retry: () -> Unit = {}
+) {
+    Box(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        if (isLoading) CircularProgressIndicator(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(vertical = 12.dp)
+                .size(24.dp),
+            strokeWidth = 2.dp,
+
+            )
+
+        if (isError) {
+            IconButton(modifier = Modifier.align(Alignment.Center), onClick = retry) {
+                Icon(
+                    modifier = Modifier.size(28.dp),
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = "Refresh"
+                )
+            }
+        }
+
+    }
+}
+
+
+@Preview
+@Composable
+fun AppendStateLayoutPreview() {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start
+    ) {
+        AppendStateLayout(
+            modifier = Modifier
+                .background(Color.Green)
+                .weight(1f),
+            isLoading = true,
+            isError = false
+        )
+
+
+        AppendStateLayout(
+            modifier = Modifier
+                .background(Color.Red)
+                .weight(1f), isLoading = false, isError = true
+        )
+    }
+
 }

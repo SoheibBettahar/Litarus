@@ -58,6 +58,12 @@ fun AppBar(
     }
 }
 
+@Preview
+@Composable
+fun AppBarPreview(){
+    AppBar()
+}
+
 
 @Composable
 fun AppbarButton(

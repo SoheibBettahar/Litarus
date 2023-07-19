@@ -46,6 +46,7 @@ import com.soheibbettahar.litarus.ui.viewmodels.BookDetailUiState
 import com.soheibbettahar.litarus.ui.viewmodels.DownloadState
 import com.soheibbettahar.litarus.util.DEFAULT_BOOK_WITH_EXTRAS
 import com.soheibbettahar.litarus.util.analytics.LocalAnalyticsHelper
+import com.soheibbettahar.litarus.util.analytics.NoOpAnalyticsHelper
 
 private const val TAG = "DetailScreen"
 
@@ -262,6 +263,19 @@ fun BookDetails(
 
 }
 
+
+
+@Preview
+@Composable
+fun BookDetailsPreview() {
+        BookDetails(
+            modifier = Modifier.fillMaxSize(),
+            book = DEFAULT_BOOK_WITH_EXTRAS.copy(downloadId = 5),
+            downloadProgress = 0.5f,
+            downloadStatus = DownloadStatus.Pending
+        )
+}
+
 @Composable
 fun DownloadProgressIndicator(
     modifier: Modifier = Modifier, downloadStatus: DownloadStatus, downloadProgress: Float
@@ -356,20 +370,7 @@ fun DownloadSuccessIndicator(modifier: Modifier = Modifier, isVisible: Boolean =
 @Preview
 @Composable
 fun DownloadSuccessIndicatorPreview() {
-    DownloadSuccessIndicator()
-}
-
-@Preview
-@Composable
-fun BookDetailsPreview() {
-    LitarusTheme() {
-        BookDetails(
-            modifier = Modifier.fillMaxSize(),
-            book = DEFAULT_BOOK_WITH_EXTRAS.copy(downloadId = 5),
-            downloadProgress = 0.5f,
-            downloadStatus = DownloadStatus.Pending
-        )
-    }
+    DownloadSuccessIndicator(isVisible = true)
 }
 
 
