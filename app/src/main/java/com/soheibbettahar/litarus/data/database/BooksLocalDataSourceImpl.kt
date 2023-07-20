@@ -2,35 +2,40 @@ package com.soheibbettahar.litarus.data.database
 
 import androidx.paging.PagingSource
 import androidx.room.withTransaction
+import com.google.android.gms.common.util.VisibleForTesting
 import com.soheibbettahar.litarus.data.database.detail.DatabaseBookWithExtras
 import com.soheibbettahar.litarus.data.database.paging.DatabaseBook
 import com.soheibbettahar.litarus.data.database.paging.RemoteKeys
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-private const val TAG = "BooksLocalDataSourceImp"
+private const val TAG = "BooksLocalDataSourceImp";
 
 class BooksLocalDataSourceImpl @Inject constructor(private val database: LitarusDatabase) :
     BooksLocalDataSource {
 
     override fun booksByNameOrAuthorAndCategoryAndLanguages(
         searchText: String, category: String, languages: String
-    ): PagingSource<Int, DatabaseBook> {
-        val searchTextString = "%${searchText.replace(' ', '%')}%"
-        val categoryString = "%${category.replace(' ', '%')}%"
-        val languagesString = "%${languages.replace(' ', '%')}%"
-
-        return when {
-            searchText.isNotBlank() && category.isNotBlank() && languages.isNotBlank() -> database.bookDao().getBySearchAndCategoryAndLanguages(searchTextString, categoryString, languages)
-            searchText.isNotBlank() && category.isNotBlank() -> database.bookDao().getBySearchAndCategory(searchTextString, categoryString)
-            searchText.isNotBlank() && languages.isNotBlank() -> database.bookDao().getBySearchAndLanguages(searchTextString, languagesString)
-            category.isNotBlank() && languages.isNotBlank() -> database.bookDao().getByCategoryAndLanguages(categoryString, languagesString)
-            searchText.isNotBlank() -> database.bookDao().getBySearch(searchTextString)
-            category.isNotBlank() -> database.bookDao().getByCategory(categoryString)
-            languages.isNotBlank() -> database.bookDao().getByLanguages(languagesString)
-            else -> getAllBooks()
-        }
+    ): PagingSource<Int, DatabaseBook> = when {
+        searchText.isNotBlank() && category.isNotBlank() && languages.isNotBlank() -> database.bookDao()
+            .getBySearchAndCategoryAndLanguages(
+                searchText.asQueryParam(), category.asQueryParam(), languages.asQueryParam()
+            )
+        searchText.isNotBlank() && category.isNotBlank() -> database.bookDao()
+            .getBySearchAndCategory(searchText.asQueryParam(), category.asQueryParam())
+        searchText.isNotBlank() && languages.isNotBlank() -> database.bookDao()
+            .getBySearchAndLanguages(searchText.asQueryParam(), languages.asQueryParam())
+        category.isNotBlank() && languages.isNotBlank() -> database.bookDao()
+            .getByCategoryAndLanguages(category.asQueryParam(), languages.asQueryParam())
+        searchText.isNotBlank() -> database.bookDao().getBySearch(searchText.asQueryParam())
+        category.isNotBlank() -> database.bookDao().getByCategory(category.asQueryParam())
+        languages.isNotBlank() -> database.bookDao().getByLanguages(languages.asQueryParam())
+        else -> getAllBooks()
     }
+
+
+    @VisibleForTesting
+    private fun String.asQueryParam(): String = "%${this.replace(' ', '%')}%"
 
 
     override suspend fun insertAllBooks(books: List<DatabaseBook>) {
