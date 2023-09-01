@@ -9,8 +9,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
+import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.google.accompanist.navigation.animation.composable
 import com.soheibbettahar.litarus.ui.screens.DetailScreen
 import com.soheibbettahar.litarus.ui.viewmodels.BookDetailUiState
 import com.soheibbettahar.litarus.ui.viewmodels.BookDetailViewModel

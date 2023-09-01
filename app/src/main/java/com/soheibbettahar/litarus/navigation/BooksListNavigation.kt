@@ -3,8 +3,8 @@ package com.soheibbettahar.litarus.navigation
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.google.accompanist.navigation.animation.composable
 import com.soheibbettahar.litarus.ui.screens.ListScreen
 import com.soheibbettahar.litarus.ui.viewmodels.BooksViewModel
 

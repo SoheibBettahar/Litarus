@@ -20,8 +20,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.navigation.*
-import com.google.accompanist.navigation.animation.AnimatedNavHost
-import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.rememberNavController
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.soheibbettahar.litarus.download.DownloadReceiver
 import com.soheibbettahar.litarus.navigation.BooksListRoute
@@ -83,7 +83,7 @@ class MainActivity : ComponentActivity() {
                 backgroundColor = MaterialTheme.colors.background,
                 snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             ) { contentPadding ->
-                val navController = rememberAnimatedNavController()
+                val navController = rememberNavController()
 
                 LitarusNavHost(
                     Modifier
@@ -128,7 +128,7 @@ class MainActivity : ComponentActivity() {
         onRequestAppReview: () -> Unit = {}
     ) {
 
-        AnimatedNavHost(
+        NavHost(
             modifier = modifier,
             navController = navController,
             startDestination = BooksListRoute
