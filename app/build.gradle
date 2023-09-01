@@ -24,6 +24,7 @@ android {
             useSupportLibrary true
         }
 
+        //Create a plugin later, or use GoogleMaps secrets plugin
         def properties = new Properties()
         properties.load(project.rootProject.file("secrets.properties").newDataInputStream())
         buildConfigField "String", "GOOGLE_BOOKS_API_KEY", "\"${properties.getProperty("GOOGLE_BOOKS_API_KEY")}\""
@@ -97,12 +98,12 @@ dependencies {
     implementation "com.squareup.okhttp3:okhttp:$okhttp_version"
 
     //Coil
-    implementation("io.coil-kt:coil:2.3.0")
-    implementation("io.coil-kt:coil-compose:2.3.0")
+    implementation("io.coil-kt:coil:$coil_version")
+    implementation("io.coil-kt:coil-compose:$coil_version")
 
     //paging
     implementation "androidx.paging:paging-runtime:$paging_version"
-    implementation "androidx.paging:paging-compose:3.2.0-rc01"
+    implementation "androidx.paging:paging-compose:$paging_version"
 
     //room
     implementation "androidx.room:room-runtime:$room_version"
@@ -137,6 +138,11 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.3.9"
+    testImplementation "androidx.test:core-ktx:1.5.0"
+    testImplementation "org.robolectric:robolectric:4.10.3"
+    testImplementation "androidx.test.ext:junit-ktx:1.1.5"
+
+
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
