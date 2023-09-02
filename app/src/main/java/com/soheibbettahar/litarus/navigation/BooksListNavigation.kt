@@ -1,6 +1,5 @@
 package com.soheibbettahar.litarus.navigation
 
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -10,7 +9,6 @@ import com.soheibbettahar.litarus.ui.viewmodels.BooksViewModel
 
 const val BooksListRoute = "BooksList"
 
-@OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.booksListScreen(
     ontNavigateToBookDetailScreen: (id: Long, title: String, author: String?) -> Unit,
     onShowSnackbar: (String) -> Unit

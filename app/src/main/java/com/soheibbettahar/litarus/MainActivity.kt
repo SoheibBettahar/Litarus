@@ -117,7 +117,6 @@ class MainActivity : ComponentActivity() {
     }
 
 
-    @OptIn(ExperimentalAnimationApi::class)
     @Composable
     fun LitarusNavHost(
         modifier: Modifier,
