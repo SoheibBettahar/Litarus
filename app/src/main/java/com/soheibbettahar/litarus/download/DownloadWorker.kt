@@ -28,8 +28,7 @@ class DownloadWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters,
     val repository: BooksRepository
 
-) :
-    CoroutineWorker(context, workerParams) {
+) : CoroutineWorker(context, workerParams) {
 
     companion object {
         fun enqueueRequest(context: Context, downloadId: Long) {
@@ -56,7 +55,8 @@ class DownloadWorker @AssistedInject constructor(
             try {
                 val downloadId = inputData.getLong(DOWNLOAD_ID_KEY, -1)
                 repository.addFileUriToDownloadedBook(downloadId)
-                Result.Success()
+                val success = Result.Success()
+                success
             } catch (throwable: Throwable) {
                 Result.Retry()
             }

@@ -1,6 +1,5 @@
 import com.soheibbettahar.litarus.util.analytics.AnalyticsHelper
 import com.soheibbettahar.litarus.util.analytics.FirebaseAnalyticsHelper
-import com.soheibbettahar.litarus.util.analytics.StubAnalyticsHelper
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

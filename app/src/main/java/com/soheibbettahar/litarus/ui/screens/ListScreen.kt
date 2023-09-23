@@ -235,13 +235,16 @@ fun BooksGrid(
 }
 
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 private fun BooksGridPreview() {
+
+    val books = flowOf(PagingData.from(DEFAULT_BOOK_LIST)).collectAsLazyPagingItems()
+
     LitarusTheme() {
         BooksGrid(
             modifier = Modifier.fillMaxSize(),
-            books = flowOf(PagingData.from(DEFAULT_BOOK_LIST)).collectAsLazyPagingItems(),
+            books = books,
             isAppendLoading = false,
             isAppendError = false
         )
@@ -254,6 +257,7 @@ private fun BooksGridPreview() {
 fun AppendStateLayout(
     modifier: Modifier = Modifier, isLoading: Boolean, isError: Boolean, retry: () -> Unit = {}
 ) {
+
     Box(
         modifier = modifier.fillMaxWidth()
     ) {

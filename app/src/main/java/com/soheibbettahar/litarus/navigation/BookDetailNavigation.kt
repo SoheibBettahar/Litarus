@@ -21,7 +21,6 @@ import java.nio.charset.StandardCharsets
 
 const val BookDetailRoute = "BooksDetail"
 
-@OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.bookDetailScreen(
     onBackPress: () -> Unit,
     onShowSnackbar: (String) -> Unit,
